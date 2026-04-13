@@ -572,7 +572,8 @@ app.post("/api/keepa-deals", async (req, res) => {
 app.get("/api/keepa-categories", async (req, res) => {
   try {
     // Fetch a small deal request just to get the category list
-    const selection = { domainId: 2, page: 0, priceTypes: [0], isFilterEnabled: true, isRangeEnabled: true };
+    // Must include priceTypes + isFilterEnabled + isRangeEnabled + deltaPercentRange to be valid
+    const selection = { domainId: 2, page: 0, priceTypes: [0], isFilterEnabled: true, isRangeEnabled: true, deltaPercentRange: [20, 100] };
     const selectionStr = encodeURIComponent(JSON.stringify(selection));
     const r = await fetch(`${KEEPA_API}/deal?key=${config.keepaApiKey}&selection=${selectionStr}`);
     const data = await r.json();
