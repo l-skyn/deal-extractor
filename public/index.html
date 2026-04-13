@@ -447,6 +447,8 @@ async function sendToScheduler() {
     ].filter(l => l !== undefined).join('\n'),
     link: d.shortLink || d.originalLink,
     promoCode: d.promoCode || '',
+    imageUrl: (d.images && d.images.length) ? d.images[0] : null,
+    title: d.keepaTitle || d.productTitle || '',
   }));
 
   console.log('Sending links:', comments.map(c => c.link));
@@ -636,9 +638,10 @@ async function sendKeepaToScheduler() {
     ].filter(l => l !== undefined).join('\n'),
     link: d.shortLink || d.amazonUrl,
     promoCode: '',
+    imageUrl: (d.images && d.images.length) ? d.images[0] : null,
+    title: d.title || '',
   }));
 
-  // Try direct call first (works locally), then proxy (works in production)
   const tryScheduler = async (url, body) => {
     const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     return r.json();
@@ -646,12 +649,8 @@ async function sendKeepaToScheduler() {
 
   try {
     // Direct call (local)
-    const data = await tryScheduler(`${schedulerUrl}/api/jobs`, {
-      caption: '🔥🔥🔥🔥 Today\'s Deals! Check the comments below! 👇',
-      comments, time: '12:00', repeat: 'once', postType: 'plain',
-      firstComment: '', lastComment: '', timezone: 'America/Montreal',
-    });
-    if (data.success) { toast(`${donDeals.length} deals sent to scheduler!`); return; }
+    const data = await tryScheduler(`${schedulerUrl}/api/staging`, { deals: comments });
+    if (data.success) { toast(`${donDeals.length} deals added to Extractor Queue!`); return; }
   } catch(e) {
     // Try proxy (production)
     try {
