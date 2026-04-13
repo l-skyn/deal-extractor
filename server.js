@@ -293,6 +293,7 @@ Write ONE caption. No hashtags. No links. No discount info. Just the caption tex
     if (data.error) throw new Error(data.error.message);
     return data.content[0].text.trim();
   } catch(e) {
+    console.log("Caption generation error:", e.message);
     return null;
   }
 }
