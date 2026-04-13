@@ -572,13 +572,15 @@ app.post("/api/keepa-deals", async (req, res) => {
 app.get("/api/keepa-categories", async (req, res) => {
   try {
     // Fetch a small deal request just to get the category list
-    const selection = { domainId: 2, page: 0, priceTypes: [0] };
+    const selection = { domainId: 2, page: 0, priceTypes: [0], isFilterEnabled: true, isRangeEnabled: true };
     const selectionStr = encodeURIComponent(JSON.stringify(selection));
     const r = await fetch(`${KEEPA_API}/deal?key=${config.keepaApiKey}&selection=${selectionStr}`);
     const data = await r.json();
 
+    console.log("Categories response:", JSON.stringify(data).slice(0, 200));
+
     if (!data.deals || !data.deals.categoryIds) {
-      return res.json({ categories: [] });
+      return res.json({ categories: [], debug: data.error || "no deals object" });
     }
 
     // Zip categoryIds + categoryNames + categoryCount together
