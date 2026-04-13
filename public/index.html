@@ -452,26 +452,15 @@ async function sendToScheduler() {
   console.log('Sending links:', comments.map(c => c.link));
 
   try {
-    const r = await fetch(`${schedulerUrl}/api/jobs`, {
+    const r = await fetch('/api/send-to-scheduler', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        caption: '🔥🔥🔥🔥 Today\'s Deals! Check the comments below! 👇',
-        comments,
-        time: '12:00',
-        repeat: 'once',
-        postType: 'plain',
-        firstComment: '',
-        lastComment: '',
-        timezone: 'America/Montreal',
-      })
+      body: JSON.stringify({ comments, schedulerUrl })
     });
     const data = await r.json();
-    if (data.success) {
-      toast(`${donDeals.length} deals sent to scheduler!`);
-      return;
-    }
-  } catch(e) {}
+    if (data.success) { toast(data.message); return; }
+    if (data.error) toast('Scheduler error: ' + data.error, 'err');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
 
   // Fallback: copy formatted text to clipboard
   const formatted = donDeals.map(d => {
@@ -649,19 +638,27 @@ async function sendKeepaToScheduler() {
     promoCode: '',
   }));
 
+  // Try direct call first (works locally), then proxy (works in production)
+  const tryScheduler = async (url, body) => {
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return r.json();
+  };
+
   try {
-    const r = await fetch(`${schedulerUrl}/api/jobs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        caption: '🔥🔥🔥🔥 Today\'s Deals! Check the comments below! 👇',
-        comments, time: '12:00', repeat: 'once', postType: 'plain',
-        firstComment: '', lastComment: '', timezone: 'America/Montreal',
-      })
+    // Direct call (local)
+    const data = await tryScheduler(`${schedulerUrl}/api/jobs`, {
+      caption: '🔥🔥🔥🔥 Today\'s Deals! Check the comments below! 👇',
+      comments, time: '12:00', repeat: 'once', postType: 'plain',
+      firstComment: '', lastComment: '', timezone: 'America/Montreal',
     });
-    const data = await r.json();
-    if (data.success) { toast(`${toSend.length} deals sent to scheduler!`); return; }
-  } catch(e) {}
+    if (data.success) { toast(`${donDeals.length} deals sent to scheduler!`); return; }
+  } catch(e) {
+    // Try proxy (production)
+    try {
+      const data = await tryScheduler('/api/send-to-scheduler', { comments, schedulerUrl });
+      if (data.success) { toast(data.message); return; }
+    } catch(e2) {}
+  }
 
   // Clipboard fallback
   const formatted = toSend.map(d => {
