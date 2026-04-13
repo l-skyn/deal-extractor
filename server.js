@@ -381,51 +381,7 @@ app.post("/api/enrich", async (req, res) => {
 });
 
 // Send to FB Scheduler
-app.post("/api/send-to-scheduler", async (req, res) => {
-  const { deals, schedulerUrl } = req.body;
-  if (!deals || !deals.length) return res.status(400).json({ error: "No deals provided" });
-
-  const target = schedulerUrl || config.schedulerUrl;
-
-  // Format as the scheduler's paste format
-  // Each deal becomes: caption\ndiscount\nlink\n＿＿＿\ntrailing
-  const comments = deals.map(d => ({
-    text: [
-      d.generatedCaption || d.productTitle || "",
-      d.discount ? `🔻 REDUCED PRICE (${d.discount})` : "",
-      d.extraDiscount ? `➕ Extra ${d.extraDiscount} available!` : "",
-    ].filter(Boolean).join("\n"),
-    link: d.shortLink || d.originalLink,
-    promoCode: d.promoCode || "",
-  }));
-
-  try {
-    // Try to post directly to scheduler API
-    const r = await fetch(`${target}/api/jobs`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        caption: "🔥🔥🔥🔥 Today's Deals! Check the comments below! 👇",
-        comments,
-        time: "12:00",
-        repeat: "once",
-        postType: "plain",
-        firstComment: "",
-        lastComment: "",
-        timezone: "America/Montreal",
-      })
-    });
-    const data = await r.json();
-    if (data.success) {
-      res.json({ success: true, message: `${deals.length} deals sent to scheduler!` });
-    } else {
-      // Fallback: return formatted text for manual paste
-      res.json({ success: false, formattedText: formatForPaste(deals) });
-    }
-  } catch(e) {
-    res.json({ success: false, formattedText: formatForPaste(deals) });
-  }
-});
+// old send-to-scheduler removed
 
 function formatForPaste(deals) {
   return deals.map(d => {
@@ -597,5 +553,38 @@ app.get("/api/keepa-categories", async (req, res) => {
     res.json({ categories });
   } catch(e) {
     res.status(500).json({ error: e.message, categories: [] });
+  }
+});
+
+// ── Proxy to FB Scheduler ─────────────────────
+app.post("/api/send-to-scheduler", async (req, res) => {
+  const { comments, schedulerUrl, caption, firstComment, lastComment, timezone } = req.body;
+  console.log("send-to-scheduler comments[0]:", JSON.stringify(comments && comments[0]));
+  if (!comments || !comments.length) return res.status(400).json({ error: "No comments provided - body: " + JSON.stringify(req.body).slice(0, 100) });
+  const target = schedulerUrl || config.schedulerUrl;
+
+  try {
+    const r = await fetch(`${target}/api/jobs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        caption: caption || "🔥🔥🔥🔥 Today's Deals! Check the comments below! 👇",
+        comments,
+        time: "12:00",
+        repeat: "once",
+        postType: "plain",
+        firstComment: firstComment || "",
+        lastComment: lastComment || "",
+        timezone: timezone || "America/Montreal",
+      })
+    });
+    const data = await r.json();
+    if (data.success) {
+      res.json({ success: true, message: `${comments.length} deals sent to scheduler!` });
+    } else {
+      res.json({ success: false, error: data.error || "Scheduler rejected the request" });
+    }
+  } catch(e) {
+    res.json({ success: false, error: e.message });
   }
 });
