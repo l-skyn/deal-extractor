@@ -453,17 +453,6 @@ async function sendToScheduler() {
 
   console.log('Sending links:', comments.map(c => c.link));
 
-  try {
-    const r = await fetch('/api/send-to-scheduler', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ comments, schedulerUrl })
-    });
-    const data = await r.json();
-    if (data.success) { toast(data.message); return; }
-    if (data.error) toast('Scheduler error: ' + data.error, 'err');
-  } catch(e) { toast('Error: ' + e.message, 'err'); }
-
   // Fallback: copy formatted text to clipboard
   const formatted = donDeals.map(d => {
     const link = d.shortLink || d.originalLink;
