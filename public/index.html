@@ -1,1 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Deal Extractor</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0f;--surface:#17171a;--surface2:#1f1f24;--surface3:#26262c;
+  --border:#2e2e36;--accent:#1877f2;--accent-dim:rgba(24,119,242,0.15);
+  --accent-hover:#3b8cf5;--success:#23c55e;--success-dim:rgba(35,197,94,0.12);
+  --error:#ef4444;--error-dim:rgba(239,68,68,0.12);--warn:#f59e0b;--warn-dim:rgba(245,158,11,0.12);
+  --text:#e8e8ed;--text2:#9898a8;--text3:#5c5c6e;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+  --r:10px;--rr:14px;
+}
+body{background:var(--bg);font-family:var(--sans);color:var(--text);min-height:100vh}
+.app{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.logo{width:36px;height:36px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;font-family:var(--mono);flex-shrink:0}
+.header h1{font-size:1.1rem;font-weight:600}
+.header p{font-size:0.75rem;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rr);padding:1.5rem;margin-bottom:1.2rem}
+.card-title{font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:1rem}
+.label{display:block;font-size:0.78rem;font-weight:500;color:var(--text2);margin-bottom:0.4rem}
+input[type="text"],textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:0.88rem;padding:0.65rem 0.9rem;outline:none;transition:border-color 0.15s;resize:vertical;-webkit-appearance:none;appearance:none}
+input:focus,textarea:focus{border-color:var(--accent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0.7rem 1.4rem;border-radius:var(--r);font-size:0.88rem;font-weight:500;cursor:pointer;border:none;transition:all 0.15s;font-family:var(--sans)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--accent-hover)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed}
+.btn-sm{padding:0.4rem 0.8rem;font-size:0.76rem;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-success{background:var(--success-dim);border:1px solid rgba(35,197,94,0.3);color:var(--success);padding:0.5rem 1rem;font-size:0.82rem}
+.btn-success:hover{background:rgba(35,197,94,0.2)}
+.btn-danger{background:none;border:1px solid var(--border);color:var(--error);padding:0.4rem 0.8rem;font-size:0.76rem}
+.btn-danger:hover{background:var(--error-dim);border-color:var(--error)}
 
+/* Stats bar */
+.stats-bar{display:flex;gap:1.5rem;padding:0.75rem 1rem;background:var(--surface2);border-radius:var(--r);margin-bottom:1.2rem;font-size:0.78rem;font-family:var(--mono)}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat-val{font-size:1.1rem;font-weight:600;color:var(--text)}
+.stat-label{color:var(--text3)}
+.stat-val.ok{color:var(--success)}
+.stat-val.err{color:var(--error)}
+.stat-val.pending{color:var(--warn)}
+
+/* Deal cards */
+.deal-list{display:flex;flex-direction:column;gap:0.75rem}
+.deal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rr);padding:1.2rem 1.4rem;transition:border-color 0.2s}
+.deal-card.done{border-color:rgba(35,197,94,0.25)}
+.deal-card.error{border-color:rgba(239,68,68,0.25)}
+.deal-card.processing{border-color:rgba(245,158,11,0.25)}
+.deal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:0.75rem}
+.deal-num{width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text3);font-size:0.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+.deal-title{font-size:0.88rem;font-weight:500;color:var(--text);flex:1;line-height:1.4}
+.deal-meta{display:flex;gap:0.75rem;font-size:0.72rem;font-family:var(--mono);color:var(--text3);flex-wrap:wrap;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:0.67rem;font-weight:600;font-family:var(--mono)}
+.badge-pending{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.badge-processing{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(245,158,11,0.25)}
+.badge-done{background:var(--success-dim);color:var(--success);border:1px solid rgba(35,197,94,0.25)}
+.badge-error{background:var(--error-dim);color:var(--error);border:1px solid rgba(239,68,68,0.25)}
+.pulse{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Caption editor */
+.caption-editor{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:0.75rem;font-size:0.82rem;line-height:1.7;color:var(--text);min-height:60px;white-space:pre-wrap;margin-top:0.75rem;cursor:text;outline:none}
+.caption-editor:focus{border-color:var(--accent)}
+.deal-link{font-family:var(--mono);font-size:0.72rem;color:var(--accent);margin-top:4px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.deal-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* Progress bar */
+.progress-wrap{height:3px;background:var(--border);border-radius:99px;margin-bottom:1.2rem;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 0.4s ease}
+
+/* Scheduler URL field */
+.scheduler-row{display:flex;gap:8px;align-items:flex-end;margin-top:0.75rem}
+.scheduler-row input{flex:1}
+
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0.75rem 1.2rem;font-size:0.82rem;transform:translateY(100px);opacity:0;transition:all 0.3s;z-index:999;max-width:360px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:rgba(35,197,94,0.4);color:var(--success)}
+.toast.err{border-color:rgba(239,68,68,0.4);color:var(--error)}
+
+.empty{text-align:center;padding:3rem;color:var(--text3);font-size:0.88rem}
+.tab-btn{flex:1;padding:0.5rem 1rem;border:none;background:none;color:var(--text2);border-radius:6px;cursor:pointer;font-size:0.82rem;font-weight:500;font-family:var(--sans);transition:all 0.15s}
+.tab-btn.active{background:var(--accent);color:#fff}
+.tab-btn:hover:not(.active){background:var(--surface2);color:var(--text)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem;margin-bottom:1rem}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin-top:0.5rem}
+.cat-check{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text2);cursor:pointer}
+.cat-check input{width:14px;height:14px;cursor:pointer}
+.deal-checkbox{width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;flex-shrink:0;appearance:none;-webkit-appearance:none;transition:all 0.15s;margin-top:3px}
+.deal-checkbox:checked{background:var(--accent);border-color:var(--accent)}
+.deal-checkbox:checked::after{content:'✓';color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.deal-thumb{width:80px;height:80px;border-radius:var(--r);object-fit:cover;border:1px solid var(--border);flex-shrink:0;background:var(--surface2)}
+.select-all-row{display:flex;align-items:center;gap:8px;margin-bottom:0.75rem;font-size:0.78rem;color:var(--text2)}
+.select-all-row input{width:18px;height:18px;border-radius:4px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div style="display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:4px">
+    <button class="tab-btn active" id="tab-extract" onclick="switchTab('extract')">📋 Extract Deals</button>
+    <button class="tab-btn" id="tab-keepa" onclick="switchTab('keepa')">🔍 Keepa Browser</button>
+  </div>
+  <div class="header">
+    <div class="logo">⚡</div>
+    <div>
+      <h1>Deal Extractor</h1>
+      <p>Paste → Extract → Enrich → Send to Scheduler</p>
+    </div>
+  </div>
+
+  <!-- Step 1: Paste -->
+  <div class="card" id="paste-card">
+    <div class="card-title">Step 1 — Paste raw deal text</div>
+    <label class="label">Paste everything at once — all deals from the page</label>
+    <textarea id="raw-input" rows="10" placeholder="Author&#10;Jack's Hot Deals UK&#10;This Wave Cruiser Inflatable...&#10;53% OFF reduction&#10;..."></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem">
+      <span id="parse-preview" style="font-size:0.75rem;color:var(--text3);font-family:var(--mono)"></span>
+      <button class="btn btn-primary" onclick="parseDeals()" id="parse-btn">Extract Deals →</button>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div id="progress-section" style="display:none">
+    <div class="progress-wrap"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-val" id="stat-total">0</div><div class="stat-label">total</div></div>
+      <div class="stat"><div class="stat-val ok" id="stat-done">0</div><div class="stat-label">done</div></div>
+      <div class="stat"><div class="stat-val pending" id="stat-pending">0</div><div class="stat-label">processing</div></div>
+      <div class="stat"><div class="stat-val err" id="stat-error">0</div><div class="stat-label">errors</div></div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <button class="btn btn-sm" onclick="retryErrors()" id="retry-btn" style="display:none">Retry errors</button>
+        <button class="btn btn-sm" onclick="processAll()" id="process-btn">Process all →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deal cards -->
+  <div class="select-all-row" id="select-all-row" style="display:none">
+    <input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this.checked)"/>
+    <label for="select-all-cb" style="cursor:pointer">Select all done deals</label>
+    <span id="selected-count" style="margin-left:auto;font-family:var(--mono);font-size:0.72rem;color:var(--text3)">0 selected</span>
+  </div>
+  <div class="deal-list" id="deal-list"></div>
+
+  <!-- Send to Scheduler -->
+  <div id="send-section" style="display:none;margin-top:1.2rem">
+    <div class="card">
+      <div class="card-title">Send to FB Scheduler</div>
+      <div class="scheduler-row">
+        <div>
+          <label class="label">FB Scheduler URL</label>
+          <input type="text" id="scheduler-url" value="http://localhost:3000" placeholder="http://localhost:3000"/>
+        </div>
+        <button class="btn btn-success" onclick="sendToScheduler()">Send to Scheduler →</button>
+      </div>
+      <p style="font-size:0.75rem;color:var(--text3);margin-top:0.5rem">Only deals with status <span style="color:var(--success)">Done</span> will be sent.</p>
+    </div>
+  </div>
+
+</div>
+  </div><!-- end panel-extract -->
+
+  <!-- KEEPA BROWSER TAB -->
+  <div class="tab-panel" id="panel-keepa">
+    <div class="card">
+      <div class="card-title">Browse Keepa Deals — UK</div>
+      <div class="filter-grid">
+        <div class="field">
+          <label class="label">Min Discount %</label>
+          <input type="number" id="kp-min-discount" value="50" min="0" max="99" style="width:100%"/>
+        </div>
+        <div class="field">
+          <label class="label">Max Price (£)</label>
+          <input type="number" id="kp-max-price" placeholder="No limit" min="0" style="width:100%"/>
+        </div>
+        <div class="field">
+          <label class="label">Min Rating ⭐</label>
+          <select id="kp-min-rating" style="width:100%">
+            <option value="">Any rating</option>
+            <option value="3">3+ stars</option>
+            <option value="3.5">3.5+ stars</option>
+            <option value="4" selected>4+ stars</option>
+            <option value="4.5">4.5+ stars</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Number of deals</label>
+          <select id="kp-limit" style="width:100%">
+            <option value="20" selected>20 deals</option>
+            <option value="50">50 deals</option>
+            <option value="100">100 deals</option>
+            <option value="150">150 deals (max)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Categories <span id="kp-cat-status" style="color:var(--text3);font-size:0.72rem;font-family:var(--mono)">(loading...)</span></label>
+        <div class="cat-grid" id="kp-cat-grid"><div style="color:var(--text3);font-size:0.78rem">Loading categories from Keepa...</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:0.75rem;margin-bottom:0.75rem">
+        <input type="checkbox" id="kp-dedupe" checked style="width:16px;height:16px;cursor:pointer"/>
+        <label for="kp-dedupe" style="font-size:0.82rem;color:var(--text2);cursor:pointer">One deal per product (deduplicate variants)</label>
+      </div>
+      <button class="btn btn-primary" onclick="fetchKeepaDeals()" id="kp-fetch-btn">Fetch Deals →</button>
+    </div>
+    <div id="kp-stats" style="display:none" class="stats-bar">
+      <div class="stat"><div class="stat-val" id="kp-total">0</div><div class="stat-label">found</div></div>
+      <div class="stat"><div class="stat-val ok" id="kp-done">0</div><div class="stat-label">enriched</div></div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <button class="btn btn-sm" id="kp-process-btn" onclick="processAllKeepa()">Enrich all →</button>
+      </div>
+    </div>
+    <div id="kp-progress-wrap" style="display:none" class="progress-wrap"><div class="progress-fill" id="kp-progress-fill" style="width:0%"></div></div>
+    <div class="deal-list" id="kp-deal-list"></div>
+    <div id="kp-send-section" style="display:none;margin-top:1.2rem">
+      <div class="card">
+        <div class="card-title">Send to FB Scheduler</div>
+        <div class="scheduler-row">
+          <div><label class="label">FB Scheduler URL</label><input type="text" id="kp-scheduler-url" value="http://localhost:3000"/></div>
+          <button class="btn btn-success" onclick="sendKeepaToScheduler()">Send to Scheduler →</button>
+        </div>
+        <p style="font-size:0.75rem;color:var(--text3);margin-top:0.5rem">Only checked deals will be sent.</p>
+      </div>
+    </div>
+  </div><!-- end panel-keepa -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+let deals = [];
+
+// ── Toast ─────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = (type === 'ok' ? '✓ ' : '✗ ') + msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.className = 'toast', 3500);
+}
+
+// ── Parse ─────────────────────────────────────
+async function parseDeals() {
+  const text = document.getElementById('raw-input').value.trim();
+  if (!text) { toast('Paste some text first', 'err'); return; }
+
+  const btn = document.getElementById('parse-btn');
+  btn.disabled = true; btn.textContent = 'Parsing...';
+
+  const res  = await fetch('/api/parse', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  });
+  const data = await res.json();
+
+  btn.disabled = false; btn.textContent = 'Extract Deals →';
+
+  if (data.error) { toast(data.error, 'err'); return; }
+  if (!data.deals.length) { toast('No deals found — check the format', 'err'); return; }
+
+  deals = data.deals;
+  renderDeals();
+  updateStats();
+  document.getElementById('progress-section').style.display = 'block';
+  toast(`${data.count} deals extracted!`);
+}
+
+// ── Render ────────────────────────────────────
+function renderDeals() {
+  const list = document.getElementById('deal-list');
+  if (!deals.length) { list.innerHTML = '<div class="empty">No deals yet.</div>'; return; }
+
+  list.innerHTML = deals.map((d, i) => `
+    <div class="deal-card ${d.status}" id="deal-card-${i}">
+      <div class="deal-header">
+        ${d.status === 'done' ? `<input type="checkbox" class="deal-checkbox" id="cb-${i}" ${d.selected ? 'checked' : ''} onchange="toggleDeal(${i}, this.checked)"/>` : `<div class="deal-num">${d.id}</div>`}
+        ${d.images && d.images.length ? `<img class="deal-thumb" src="${d.images[0]}" onerror="this.style.display='none'" loading="lazy"/>` : ''}
+        <div style="flex:1">
+          <div class="deal-title">${d.keepaTitle || d.productTitle || 'Processing...'}</div>
+          <div class="deal-meta">
+            ${d.asin ? `<span>ASIN: ${d.asin}</span>` : ''}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+            ${d.discount !== null && d.discount !== undefined ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#ff6b35;background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].discount=this.textContent.trim();updateOutput(${i})" spellcheck="false">🔻 ${d.discount}</span>` : ''}
+            ${d.discountWithVoucher ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#f59e0b;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].discountWithVoucher=this.textContent.replace('🎟️','').replace('with voucher','').trim();updateOutput(${i})" spellcheck="false">🎟️ ${d.discountWithVoucher} with voucher</span>` : ''}
+            ${d.extraDiscount ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#a78bfa;background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].extraDiscount=this.textContent.replace('➕ Extra','').replace('available!','').trim();updateOutput(${i})" spellcheck="false">➕ Extra ${d.extraDiscount}</span>` : ''}
+            ${d.extraDiscountWithVoucher ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#f59e0b;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].extraDiscountWithVoucher=this.textContent.replace('🎟️ Extra','').replace('with voucher','').trim();updateOutput(${i})" spellcheck="false">🎟️ Extra ${d.extraDiscountWithVoucher} with voucher</span>` : ''}
+            ${d.checkoutDiscount ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#34d399;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].checkoutDiscount=this.textContent.replace('🛒','').replace('at checkout','').trim();updateOutput(${i})" spellcheck="false">🛒 ${d.checkoutDiscount} at checkout</span>` : ''}
+            ${d.primeDiscount ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#818cf8;background:rgba(129,140,248,0.12);border:1px solid rgba(129,140,248,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].primeDiscount=this.textContent.replace('👑','').replace('for Prime Members','').trim();updateOutput(${i})" spellcheck="false">👑 ${d.primeDiscount} for Prime Members</span>` : ''}
+            ${d.isPriceDrop ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:700;color:#60a5fa;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);border-radius:6px;padding:3px 10px">📉 Price Drop from reg. <span contenteditable="true" style="min-width:40px;outline:none;border-bottom:1px dashed rgba(96,165,250,0.5);padding:0 2px" onblur="deals[${i}].priceDropFrom=this.textContent.trim()" placeholder="£??" spellcheck="false">${d.primeDropFrom||'£??'}</span></span>` : ''}
+          </div>
+          ${d.category ? `<div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+            <span style="font-size:0.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px;color:var(--text2);font-family:var(--mono)">📂 ${d.category}</span>
+            <span style="font-size:0.72rem;background:var(--success-dim);border:1px solid rgba(35,197,94,0.25);border-radius:100px;padding:2px 8px;color:var(--success);font-family:var(--mono);font-weight:600">💰 ${d.commissionRate}% commission</span>
+          </div>` : ''}
+          ${d.shortLink ? `<a class="deal-link" href="${d.shortLink}" target="_blank">${d.shortLink}</a>` : ''}
+          ${d.status === 'error' ? `<div style="font-size:0.72rem;color:var(--error);margin-top:4px">✗ ${d.error}</div>` : ''}
+        </div>
+        <div class="deal-actions">
+          <span class="badge badge-${d.status} ${d.status==='processing'?'pulse':''}">${
+            d.status==='pending' ? 'Pending' :
+            d.status==='processing' ? 'Processing...' :
+            d.status==='done' ? 'Done' : 'Error'
+          }</span>
+          ${d.status==='pending' || d.status==='error' ? `<button class="btn-sm btn" onclick="processSingle(${i})">Process</button>` : ''}
+          <button class="btn-danger btn" onclick="removeDeal(${i})">✕</button>
+        </div>
+      </div>
+      ${d.status === 'done' && d.generatedCaption ? `
+        <div style="font-size:0.72rem;color:var(--text3);font-family:var(--mono);margin-bottom:4px">✏️ Caption (click to edit)</div>
+        <div class="caption-editor" contenteditable="true" id="caption-${i}" onblur="saveCaption(${i}, this.textContent)">${d.generatedCaption}</div>
+      ` : ''}
+    </div>`
+  ).join('');
+
+  const hasDone = deals.some(d => d.status === 'done');
+  document.getElementById('send-section').style.display = hasDone ? 'block' : 'none';
+  document.getElementById('select-all-row').style.display = hasDone ? 'flex' : 'none';
+  updateSelectedCount();
+}
+
+function updateStats() {
+  const total   = deals.length;
+  const done    = deals.filter(d => d.status === 'done').length;
+  const pending = deals.filter(d => d.status === 'processing' || d.status === 'pending').length;
+  const errors  = deals.filter(d => d.status === 'error').length;
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-done').textContent    = done;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-error').textContent   = errors;
+  document.getElementById('progress-fill').style.width = total ? Math.round((done / total) * 100) + '%' : '0%';
+  document.getElementById('retry-btn').style.display = errors > 0 ? 'inline-flex' : 'none';
+}
+
+
+function toggleDeal(idx, checked) {
+  deals[idx].selected = checked;
+  updateSelectedCount();
+}
+
+function toggleSelectAll(checked) {
+  deals.forEach((d, i) => {
+    if (d.status === 'done') {
+      d.selected = checked;
+      const cb = document.getElementById('cb-' + i);
+      if (cb) cb.checked = checked;
+    }
+  });
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const count = deals.filter(d => d.selected).length;
+  const el = document.getElementById('selected-count');
+  if (el) el.textContent = count + ' selected';
+}
+
+function saveCaption(idx, text) {
+  deals[idx].generatedCaption = text.trim();
+}
+
+function updateOutput(idx) {
+  // Discount fields are updated inline via onblur — nothing extra needed
+}
+
+function removeDeal(idx) {
+  deals.splice(idx, 1);
+  deals.forEach((d, i) => d.id = i + 1);
+  renderDeals();
+  updateStats();
+}
+
+// ── Process ───────────────────────────────────
+async function processSingle(idx) {
+  deals[idx].status = 'processing';
+  renderDeals(); updateStats();
+
+  const res  = await fetch('/api/enrich', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deal: deals[idx] })
+  });
+  const enriched = await res.json();
+  deals[idx] = { ...deals[idx], ...enriched, selected: enriched.status === 'done' };
+  renderDeals(); updateStats();
+}
+
+async function processAll() {
+  const pending = deals.map((d, i) => ({ d, i })).filter(({ d }) => d.status === 'pending' || d.status === 'error');
+  if (!pending.length) { toast('No pending deals to process', 'err'); return; }
+
+  const btn = document.getElementById('process-btn');
+  btn.disabled = true;
+
+  const RATE_LIMIT = 18;
+  for (let i = 0; i < pending.length; i++) {
+    const idx = pending[i].i;
+
+    if (i > 0 && i % RATE_LIMIT === 0) {
+      for (let s = 65; s > 0; s--) {
+        btn.textContent = `Resuming in ${s}s (${i}/${pending.length} done)`;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+
+    btn.textContent = `Processing ${i+1}/${pending.length}...`;
+    await processSingle(idx);
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  btn.disabled = false; btn.textContent = 'Process all →';
+  toast('All deals processed!');
+}
+
+async function retryErrors() {
+  const errors = deals.map((d, i) => ({ d, i })).filter(({ d }) => d.status === 'error');
+  for (const { i } of errors) {
+    await processSingle(i);
+    await new Promise(r => setTimeout(r, 500));
+  }
+}
+
+// ── Send to Scheduler ─────────────────────────
+async function sendToScheduler() {
+  const selectedDeals = deals.filter(d => d.selected && d.status === 'done');
+  const donDeals = selectedDeals.length > 0 ? selectedDeals : deals.filter(d => d.status === 'done');
+  if (!donDeals.length) { toast('No deals selected — tick the checkboxes first', 'err'); return; }
+
+  const schedulerUrl = document.getElementById('scheduler-url').value.trim();
+
+  // Try direct scheduler API first
+  const comments = donDeals.map(d => ({
+    text: [
+      d.generatedCaption || d.keepaTitle || d.productTitle || '',
+      '',
+      d.discount ? `🔻 REDUCED PRICE (${d.discount.replace(/^🔻\s*/,'').replace(/^REDUCED PRICE\s*/i,'')})` : '',
+      d.discountWithVoucher ? `🎟️ ${d.discountWithVoucher} with voucher` : '',
+      d.extraDiscount ? `➕ Extra ${d.extraDiscount} available!` : '',
+      d.extraDiscountWithVoucher ? `🎟️ Extra ${d.extraDiscountWithVoucher} with voucher` : '',
+    ].filter(l => l !== undefined).join('\n'),
+    link: d.shortLink || d.originalLink,
+    promoCode: d.promoCode || '',
+  }));
+
+  console.log('Sending links:', comments.map(c => c.link));
+
+  try {
+    const r = await fetch(`${schedulerUrl}/api/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        caption: '🔥🔥🔥🔥 Today\'s Deals! Check the comments below! 👇',
+        comments,
+        time: '12:00',
+        repeat: 'once',
+        postType: 'plain',
+        firstComment: '',
+        lastComment: '',
+        timezone: 'America/Montreal',
+      })
+    });
+    const data = await r.json();
+    if (data.success) {
+      toast(`${donDeals.length} deals sent to scheduler!`);
+      return;
+    }
+  } catch(e) {}
+
+  // Fallback: copy formatted text to clipboard
+  const formatted = donDeals.map(d => {
+    const link = d.shortLink || d.originalLink;
+    const caption = d.generatedCaption || d.keepaTitle || d.productTitle || '';
+    const discountLines = [
+      d.discount ? `🔻 REDUCED PRICE (${d.discount.replace(/^🔻\s*/,'').trim()})` : null,
+      d.discountWithVoucher ? `🎟️ ${d.discountWithVoucher.replace(/^🎟️\s*/,'').trim()} with voucher` : null,
+      d.extraDiscount ? `➕ Extra ${d.extraDiscount.replace(/^➕\s*Extra\s*/i,'').trim()} available!` : null,
+      d.extraDiscountWithVoucher ? `🎟️ Extra ${d.extraDiscountWithVoucher.replace(/^🎟️\s*Extra\s*/i,'').trim()} with voucher` : null,
+      d.checkoutDiscount ? `🛒 ${d.checkoutDiscount.replace(/^🛒\s*/,'').replace(/at checkout/i,'').trim()} at checkout` : null,
+      d.primeDiscount ? `👑 ${d.primeDiscount.replace(/^👑\s*/,'').replace(/for Prime Members/i,'').trim()} for Prime Members` : null,
+      d.isPriceDrop ? `📉 Price Drop from reg. ${d.priceDropFrom||'£??'}` : null,
+      link,
+    ].filter(Boolean);
+    const lines = discountLines.length ? caption + '\n\n' + discountLines.join('\n') : caption + '\n' + link;
+    return `"${lines}"`;
+  }).join('\n');
+
+  navigator.clipboard.writeText(formatted);
+  toast('Copied to clipboard — paste into FB Scheduler');
+}
+
+
+// ── Tab switching ─────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ── Keepa Deals Browser ───────────────────────
+let keepaDeals = [];
+
+async function fetchKeepaDeals() {
+  const minDiscount = parseInt(document.getElementById('kp-min-discount').value) || 0;
+  const maxPrice    = parseInt(document.getElementById('kp-max-price').value) || null;
+  const limit       = parseInt(document.getElementById('kp-limit').value) || 50;
+  const categories  = [...document.querySelectorAll('.cat-grid input:checked')].map(c => parseInt(c.value));
+
+  const btn = document.getElementById('kp-fetch-btn');
+  btn.disabled = true; btn.textContent = 'Fetching...';
+
+  try {
+    const res = await fetch('/api/keepa-deals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ minDiscount, maxPrice, limit, categories, page: 0, dedupeVariants: document.getElementById('kp-dedupe').checked, minRating: document.getElementById('kp-min-rating').value ? parseFloat(document.getElementById('kp-min-rating').value) : null })
+    });
+    const data = await res.json();
+
+    if (data.error) { toast(data.error, 'err'); return; }
+
+    keepaDeals = data.deals;
+    renderKeepaDeals();
+    updateKeepaStats();
+    document.getElementById('kp-stats').style.display = 'flex';
+    document.getElementById('kp-progress-wrap').style.display = 'block';
+    const dedupedMsg = data.deduped > 0 ? ` (${data.deduped} variants removed)` : '';
+    toast(`${data.deals.length} deals fetched${dedupedMsg}!`);
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Fetch Deals →';
+  }
+}
+
+function renderKeepaDeals() {
+  const list = document.getElementById('kp-deal-list');
+  if (!keepaDeals.length) { list.innerHTML = '<div class="empty">No deals found — try adjusting filters.</div>'; return; }
+
+  list.innerHTML = keepaDeals.map((d, i) => `
+    <div class="deal-card ${d.status}" id="kp-card-${i}">
+      <div class="deal-header">
+        ${d.status === 'done' ? `<input type="checkbox" class="deal-checkbox" id="kp-cb-${i}" ${d.selected?'checked':''} onchange="keepaDeals[${i}].selected=this.checked;updateKeepaStats()"/>` : `<div class="deal-num">${i+1}</div>`}
+        ${d.images && d.images.length ? `<img class="deal-thumb" src="${d.images[0]}" onerror="this.style.display='none'" loading="lazy"/>` : ''}
+        <div style="flex:1">
+          <div class="deal-title">${d.title || 'Loading...'}</div>
+          <div class="deal-meta">
+            ${d.discount ? `<span style="color:#ff6b35;font-weight:700">🔻 ${d.discount}% OFF</span>` : ''}
+            ${d.currentPrice ? `<span>£${d.currentPrice}</span>` : ''}
+            ${d.avgPrice ? `<span style="text-decoration:line-through;color:var(--text3)">avg £${d.avgPrice}</span>` : ''}
+            ${d.asin ? `<span>ASIN: ${d.asin}</span>` : ''}
+          </div>
+          ${d.category ? `<div style="display:flex;gap:8px;margin-top:6px">
+            <span style="font-size:0.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px;color:var(--text2);font-family:var(--mono)">📂 ${d.category}</span>
+            <span style="font-size:0.72rem;background:var(--success-dim);border:1px solid rgba(35,197,94,0.25);border-radius:100px;padding:2px 8px;color:var(--success);font-family:var(--mono);font-weight:600">💰 ${d.commissionRate}% commission</span>
+          </div>` : ''}
+          ${d.shortLink ? `<a class="deal-link" href="${d.shortLink}" target="_blank">${d.shortLink}</a>` : ''}
+          ${d.status === 'error' ? `<div style="font-size:0.72rem;color:var(--error);margin-top:4px">✗ ${d.error}</div>` : ''}
+        </div>
+        <div class="deal-actions">
+          <span class="badge badge-${d.status} ${d.status==='processing'?'pulse':''}">${
+            d.status==='pending'?'Pending':d.status==='processing'?'Processing...':d.status==='done'?'Done':'Error'
+          }</span>
+          ${d.status==='pending'||d.status==='error' ? `<button class="btn-sm btn" onclick="enrichKeepaOne(${i})">Enrich</button>` : ''}
+        </div>
+      </div>
+      ${d.status === 'done' && d.generatedCaption ? `
+        <div style="font-size:0.72rem;color:var(--text3);font-family:var(--mono);margin-bottom:4px">✏️ Caption (click to edit)</div>
+        <div class="caption-editor" contenteditable="true" onblur="keepaDeals[${i}].generatedCaption=this.textContent.trim()">${d.generatedCaption}</div>
+      ` : ''}
+    </div>`
+  ).join('');
+
+  document.getElementById('kp-send-section').style.display = keepaDeals.some(d => d.status === 'done') ? 'block' : 'none';
+}
+
+function updateKeepaStats() {
+  const total = keepaDeals.length;
+  const done  = keepaDeals.filter(d => d.status === 'done').length;
+  document.getElementById('kp-total').textContent = total;
+  document.getElementById('kp-done').textContent  = done;
+  document.getElementById('kp-progress-fill').style.width = total ? Math.round((done/total)*100)+'%' : '0%';
+}
+
+async function enrichKeepaOne(idx) {
+  keepaDeals[idx].status = 'processing';
+  renderKeepaDeals(); updateKeepaStats();
+
+  const res = await fetch('/api/enrich', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deal: keepaDeals[idx] })
+  });
+  const enriched = await res.json();
+  keepaDeals[idx] = { ...keepaDeals[idx], ...enriched, selected: enriched.status === 'done' };
+  renderKeepaDeals(); updateKeepaStats();
+}
+
+async function processAllKeepa() {
+  const pending = keepaDeals.map((d,i) => ({d,i})).filter(({d}) => d.status === 'pending' || d.status === 'error');
+  if (!pending.length) { toast('Nothing to enrich', 'err'); return; }
+
+  const btn = document.getElementById('kp-process-btn');
+  btn.disabled = true;
+
+  const RATE_LIMIT = 18; // stay safely under 20/min
+  for (let i = 0; i < pending.length; i++) {
+    const idx = pending[i].i;
+
+    // Pause every 18 deals for 65 seconds
+    if (i > 0 && i % RATE_LIMIT === 0) {
+      btn.textContent = `Rate limit pause... (${i}/${pending.length})`;
+      for (let s = 65; s > 0; s--) {
+        btn.textContent = `Resuming in ${s}s (${i}/${pending.length} done)`;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+
+    btn.textContent = `Enriching ${i+1}/${pending.length}...`;
+    await enrichKeepaOne(idx);
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  btn.disabled = false; btn.textContent = 'Enrich all →';
+  toast('All deals enriched!');
+}
+
+async function sendKeepaToScheduler() {
+  const selected = keepaDeals.filter(d => d.selected && d.status === 'done');
+  const toSend   = selected.length ? selected : keepaDeals.filter(d => d.status === 'done');
+  if (!toSend.length) { toast('No enriched deals to send', 'err'); return; }
+
+  const schedulerUrl = document.getElementById('kp-scheduler-url').value.trim();
+
+  const comments = toSend.map(d => ({
+    text: [
+      d.generatedCaption || d.title || '',
+      '',
+      d.discount ? `🔻 REDUCED PRICE (${d.discount}% OFF)` : '',
+    ].filter(l => l !== undefined).join('\n'),
+    link: d.shortLink || d.amazonUrl,
+    promoCode: '',
+  }));
+
+  try {
+    const r = await fetch(`${schedulerUrl}/api/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        caption: '🔥🔥🔥🔥 Today\'s Deals! Check the comments below! 👇',
+        comments, time: '12:00', repeat: 'once', postType: 'plain',
+        firstComment: '', lastComment: '', timezone: 'America/Montreal',
+      })
+    });
+    const data = await r.json();
+    if (data.success) { toast(`${toSend.length} deals sent to scheduler!`); return; }
+  } catch(e) {}
+
+  // Clipboard fallback
+  const formatted = toSend.map(d => {
+    const link = d.shortLink || d.amazonUrl;
+    const lines = [
+      d.generatedCaption || d.title || '',
+      '',
+      d.discount ? `🔻 REDUCED PRICE (${d.discount}% OFF)` : '',
+      link,
+    ].filter(Boolean).join('\n');
+    return `"${lines}"`;
+  }).join('\n');
+
+  navigator.clipboard.writeText(formatted);
+  toast('Copied to clipboard!');
+}
+
+
+// ── Load Keepa categories ─────────────────────
+let keepaCategories = [];
+
+async function loadKeepaCategories() {
+  try {
+    const res  = await fetch('/api/keepa-categories');
+    const data = await res.json();
+    keepaCategories = data.categories || [];
+
+    const grid = document.getElementById('kp-cat-grid');
+    const status = document.getElementById('kp-cat-status');
+
+    if (!keepaCategories.length) {
+      grid.innerHTML = '<div style="color:var(--text3);font-size:0.78rem">No categories available</div>';
+      return;
+    }
+
+    status.textContent = `(${keepaCategories.length} available)`;
+    grid.innerHTML = keepaCategories.map(c => `
+      <label class="cat-check">
+        <input type="checkbox" value="${c.id}" ${c.name === 'Fashion' ? 'checked' : ''}/>
+        ${c.name} <span style="color:var(--text3);font-size:0.68rem">(${c.count})</span>
+      </label>`).join('');
+  } catch(e) {
+    document.getElementById('kp-cat-grid').innerHTML = '<div style="color:var(--error);font-size:0.78rem">Failed to load categories</div>';
+  }
+}
+
+// Load when tab is opened
+document.getElementById('tab-keepa').addEventListener('click', () => {
+  if (!keepaCategories.length) loadKeepaCategories();
+});
+
+// ── Live parse preview ─────────────────────────
+document.getElementById('raw-input').addEventListener('input', () => {
+  const text = document.getElementById('raw-input').value;
+  const isUKBargains = text.includes('UK Bargains Finder') || text.includes('amzlink.to');
+  const isOwn = text.trimStart().startsWith('"') && text.includes('linktw.in') && !text.includes('UK Bargains Finder') && !text.includes('Author');
+  let count = 0;
+  if (isOwn) count = (text.match(/^"/gm) || []).length;
+  else if (isUKBargains) count = (text.match(/(?=UK Bargains Finder)/g) || []).length;
+  else count = (text.match(/(?=Author\s*\n)/g) || []).length;
+  const formatLabel = isOwn ? ' (own posts)' : isUKBargains ? ' (UK Bargains)' : ' (Jack\'s Hot Deals)';
+  document.getElementById('parse-preview').textContent = count ? `~${count} deals detected${formatLabel}` : '';
+});
+</script>
+</body>
+</html>
