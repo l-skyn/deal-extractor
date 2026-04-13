@@ -453,6 +453,26 @@ async function sendToScheduler() {
 
   console.log('Sending links:', comments.map(c => c.link));
 
+  try {
+    console.log("Extract tab trying staging:", schedulerUrl);
+    const r = await fetch(`${schedulerUrl}/api/staging`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deals: comments })
+    });
+    const data = await r.json();
+    console.log("Extract staging response:", JSON.stringify(data));
+    if (data.success) { toast(`${comments.length} deals added to Extractor Queue!`); return; }
+  } catch(e) {
+    try {
+      const r = await fetch('/api/send-to-scheduler', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comments, schedulerUrl })
+      });
+      const data = await r.json();
+      if (data.success) { toast(data.message); return; }
+    } catch(e2) {}
+  }
+
   // Fallback: copy formatted text to clipboard
   const formatted = donDeals.map(d => {
     const link = d.shortLink || d.originalLink;
@@ -638,14 +658,17 @@ async function sendKeepaToScheduler() {
 
   try {
     // Direct call (local)
+    console.log("Trying direct staging call to:", schedulerUrl);
     const data = await tryScheduler(`${schedulerUrl}/api/staging`, { deals: comments });
-    if (data.success) { toast(`${donDeals.length} deals added to Extractor Queue!`); return; }
+    console.log("Direct staging response:", JSON.stringify(data));
+    if (data.success) { toast(`${comments.length} deals added to Extractor Queue!`); return; }
   } catch(e) {
-    // Try proxy (production)
+    console.log("Direct call failed, trying proxy:", e.message);
     try {
       const data = await tryScheduler('/api/send-to-scheduler', { comments, schedulerUrl });
+      console.log("Proxy response:", JSON.stringify(data));
       if (data.success) { toast(data.message); return; }
-    } catch(e2) {}
+    } catch(e2) { console.log("Proxy also failed:", e2.message); }
   }
 
   // Clipboard fallback
