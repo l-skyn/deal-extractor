@@ -564,23 +564,14 @@ app.post("/api/send-to-scheduler", async (req, res) => {
   const target = schedulerUrl || config.schedulerUrl;
 
   try {
-    const r = await fetch(`${target}/api/jobs`, {
+    const r = await fetch(`${target}/api/staging`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        caption: caption || "🔥🔥🔥🔥 Today's Deals! Check the comments below! 👇",
-        comments,
-        time: "12:00",
-        repeat: "once",
-        postType: "plain",
-        firstComment: firstComment || "",
-        lastComment: lastComment || "",
-        timezone: timezone || "America/Montreal",
-      })
+      body: JSON.stringify({ deals: comments })
     });
     const data = await r.json();
     if (data.success) {
-      res.json({ success: true, message: `${comments.length} deals sent to scheduler!` });
+      res.json({ success: true, message: `${comments.length} deals added to Extractor Queue!` });
     } else {
       res.json({ success: false, error: data.error || "Scheduler rejected the request" });
     }
