@@ -75,18 +75,25 @@ function parseDeals(raw) {
       !l.includes('http') && !l.includes('AMAZON') && !l.includes('AMZLINK')
     );
 
-    // Find main discount line (not "extra", not "prime", not "checkout", not "voucher only")
+    // Find main discount line (not "extra", not "prime", not "checkout")
     const mainDiscountLine = allDiscountLines.find(l =>
       /\d+%\s*OFF/i.test(l) &&
       !/extra/i.test(l) &&
       !/prime/i.test(l) &&
-      !/checkout/i.test(l) &&
-      (!/voucher/i.test(l) || /reduction/i.test(l)) // "reduction" lines with voucher text are main discounts
+      !/checkout/i.test(l)
     );
     const mainDiscountMatch = mainDiscountLine ? mainDiscountLine.match(/(\d+)%\s*OFF/i) : null;
-    const mainDiscountHasVoucher = mainDiscountLine ? (/voucher/i.test(mainDiscountLine) && !/reduction/i.test(mainDiscountLine)) : false;
+    const mainDiscountHasVoucher = mainDiscountLine ? /voucher/i.test(mainDiscountLine) : false;
     const discount = mainDiscountMatch && !mainDiscountHasVoucher ? mainDiscountMatch[1] + "% OFF" : null;
-    const discountWithVoucher = mainDiscountMatch && mainDiscountHasVoucher ? mainDiscountMatch[1] + "% OFF" : null;
+
+    // discountWithVoucher: main line contains voucher, OR standalone "X% OFF with the voucher" line
+    const voucherOnlyLine = !mainDiscountLine
+      ? allDiscountLines.find(l => /\d+%/i.test(l) && /voucher/i.test(l) && !/extra/i.test(l))
+      : null;
+    const voucherOnlyMatch = voucherOnlyLine ? voucherOnlyLine.match(/(\d+)%/i) : null;
+    const discountWithVoucher = (mainDiscountMatch && mainDiscountHasVoucher)
+      ? mainDiscountMatch[1] + "% OFF"
+      : voucherOnlyMatch ? voucherOnlyMatch[1] + "% OFF" : null;
 
     // Extra discount with voucher (e.g. "Extra 12% OFF with the voucher")
     const extraVoucherLine  = allDiscountLines.find(l => /extra/i.test(l) && /voucher/i.test(l));
