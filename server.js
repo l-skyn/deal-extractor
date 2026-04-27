@@ -242,22 +242,42 @@ function getCategoryRate(categoryName) {
 // ── Keepa product lookup ──────────────────────
 async function keepaLookup(asin, domain) {
   try {
-    const res  = await fetch(`${KEEPA_API}/product?key=${config.keepaApiKey}&domain=${domain||2}&asin=${asin}&history=0`);
+    const res  = await fetch(`${KEEPA_API}/product?key=${config.keepaApiKey}&domain=${domain||2}&asin=${asin}&history=0&stats=1`);
     const data = await res.json();
     if (data.products && data.products.length > 0) {
       const p = data.products[0];
-      const images = p.imagesCSV
-        ? p.imagesCSV.split(",").filter(Boolean).map(img => `${AMAZON_IMG}${img}`)
-        : [];
+
+      // Support new images[] array (replaces deprecated imagesCSV)
+      let images = [];
+      if (p.images && p.images.length) {
+        images = p.images.map(img => {
+          // new format: img can be object with .path or just a filename string
+          const path = (typeof img === 'object') ? (img.path || img.image || img.highRes || img.lowRes || '') : img;
+          return path ? `${AMAZON_IMG}${path}` : null;
+        }).filter(Boolean);
+      } else if (p.imagesCSV) {
+        // fallback to old format
+        images = p.imagesCSV.split(",").filter(Boolean).map(img => `${AMAZON_IMG}${img}`);
+      }
+
+      // Rating: p.stats.current[RATING] or p.csv[RATING] — index 16 in csv array
+      // Keepa stores rating as integer * 10 (e.g. 45 = 4.5 stars)
+      let rating = null;
+      if (p.stats && p.stats.current && p.stats.current[16] > 0) {
+        rating = (p.stats.current[16] / 10).toFixed(1);
+      } else if (p.csv && p.csv[16] && p.csv[16].length > 0) {
+        const lastRating = p.csv[16][p.csv[16].length - 1];
+        if (lastRating > 0) rating = (lastRating / 10).toFixed(1);
+      }
+
       const catInfo = getCategoryInfo(p.rootCategory);
-      // Use name-based rate as it's more reliable than ID-based
       const commissionRate = getCategoryRate(catInfo.name);
-      console.log("rootCategory:", p.rootCategory, "→", catInfo.name, commissionRate + "%");
-      return { title: p.title, images, category: catInfo.name, commissionRate };
+      console.log("rootCategory:", p.rootCategory, "→", catInfo.name, commissionRate + "% | rating:", rating, "| images:", images.length);
+      return { title: p.title, images, category: catInfo.name, commissionRate, rating };
     }
-    return { title: null, images: [], category: "Other", commissionRate: 4 };
+    return { title: null, images: [], category: "Other", commissionRate: 4, rating: null };
   } catch(e) {
-    return { title: null, images: [], error: e.message };
+    return { title: null, images: [], error: e.message, rating: null };
   }
 }
 
@@ -356,11 +376,12 @@ app.post("/api/enrich", async (req, res) => {
   else if (amazonUrl.includes("amazon.fr")) domain = 4;
 
   // Step 2: Keepa
-  const { title, images, category, commissionRate } = await keepaLookup(asin, domain);
+  const { title, images, category, commissionRate, rating } = await keepaLookup(asin, domain);
   result.keepaTitle = title;
   result.images = images;
   result.category = category || "Other";
   result.commissionRate = commissionRate || 4;
+  result.rating = rating || null;
 
   // Step 3: Generate caption
   const caption = await generateCaption(title || deal.productTitle, deal.discount, deal.extraDiscount);
