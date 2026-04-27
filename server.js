@@ -242,7 +242,7 @@ function getCategoryRate(categoryName) {
 // ── Keepa product lookup ──────────────────────
 async function keepaLookup(asin, domain) {
   try {
-    const res  = await fetch(`${KEEPA_API}/product?key=${config.keepaApiKey}&domain=${domain||2}&asin=${asin}&history=0&stats=90`);
+    const res  = await fetch(`${KEEPA_API}/product?key=${config.keepaApiKey}&domain=${domain||2}&asin=${asin}&history=0&stats=90&rating=1`);
     const data = await res.json();
     if (data.products && data.products.length > 0) {
       const p = data.products[0];
