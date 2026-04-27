@@ -256,16 +256,14 @@ async function keepaLookup(asin, domain) {
         }).filter(Boolean);
       }
 
-      // Rating from csv[16] (RATING time series): [time, value, time, value, ...]
-      // Values are rating * 10 (e.g. 45 = 4.5 stars), odd indices are values
+      // Rating: stats.current[16] is most reliable with stats=90&rating=1
+      // Values are rating * 10 (e.g. 44 = 4.4 stars)
       let rating = null;
-      if (p.csv && p.csv[16] && p.csv[16].length >= 2) {
-        // Walk backwards through odd indices to find last valid rating
+      if (p.stats && p.stats.current && Array.isArray(p.stats.current) && p.stats.current[16] > 0) {
+        rating = (p.stats.current[16] / 10).toFixed(1);
+      } else if (p.csv && p.csv[16] && p.csv[16].length >= 2) {
         for (let i = p.csv[16].length - 1; i >= 1; i -= 2) {
-          if (p.csv[16][i] > 0) {
-            rating = (p.csv[16][i] / 10).toFixed(1);
-            break;
-          }
+          if (p.csv[16][i] > 0) { rating = (p.csv[16][i] / 10).toFixed(1); break; }
         }
       }
 
