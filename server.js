@@ -112,9 +112,15 @@ function parseDeals(raw) {
     const priceDropLine = lines.find(l => /price\s*drop/i.test(l) || /was\s*£/i.test(l) || /reduced\s*from/i.test(l));
     const isPriceDrop   = !!priceDropLine && !discount && !discountWithVoucher && !checkoutDiscount && !primeDiscount;
 
-    // Product title — line after AMAZON.CO.UK or AMZLINK.TO
-    const titleMarkerIdx = lines.findIndex(l => l.includes("AMAZON.CO.UK") || l.includes("AMAZON.COM") || l.includes("AMZLINK.TO"));
-    const productTitle = titleMarkerIdx !== -1 && lines[titleMarkerIdx + 1] ? lines[titleMarkerIdx + 1] : null;
+    // Product title — line after AMAZON.CO.UK or AMZLINK.TO (case-insensitive)
+    const titleMarkerIdx = lines.findIndex(l =>
+      l.toUpperCase().includes("AMAZON.CO.UK") ||
+      l.toUpperCase().includes("AMAZON.COM") ||
+      l.toUpperCase().includes("AMZLINK.TO")
+    );
+    const titleFromMarker = titleMarkerIdx !== -1 && lines[titleMarkerIdx + 1] ? lines[titleMarkerIdx + 1] : null;
+    // Fallback: use description text as title (especially for UK Bargains Finder)
+    const productTitle = titleFromMarker || description || null;
 
     return {
       id: idx + 1,
@@ -270,9 +276,6 @@ async function keepaLookup(asin, domain) {
       const catInfo = getCategoryInfo(p.rootCategory);
       const commissionRate = getCategoryRate(catInfo.name);
       console.log("rootCategory:", p.rootCategory, "→", catInfo.name, commissionRate + "% | rating:", rating, "| images:", images.length);
-      console.log("RAW images field:", JSON.stringify(p.images ? p.images.slice(0,2) : null));
-      console.log("RAW imagesCSV:", p.imagesCSV ? p.imagesCSV.slice(0,100) : null);
-      console.log("RAW stats.current:", JSON.stringify(p.stats ? p.stats.current : null));
       return { title: p.title, images, category: catInfo.name, commissionRate, rating };
     }
     return { title: null, images: [], category: "Other", commissionRate: 4, rating: null };
