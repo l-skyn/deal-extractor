@@ -247,29 +247,26 @@ async function keepaLookup(asin, domain) {
     if (data.products && data.products.length > 0) {
       const p = data.products[0];
 
-      // Support new images[] array (replaces deprecated imagesCSV)
+      // New images[] format: each obj has 'l' (large 1600px) and 'm' (medium 500px)
       let images = [];
       if (p.images && p.images.length) {
         images = p.images.map(img => {
-          // new format: img can be object with .path or just a filename string
-          const path = (typeof img === 'object') ? (img.path || img.image || img.highRes || img.lowRes || '') : img;
-          return path ? `${AMAZON_IMG}${path}` : null;
+          const filename = img.l || img.m || null;
+          return filename ? `${AMAZON_IMG}${filename}` : null;
         }).filter(Boolean);
-      } else if (p.imagesCSV) {
-        // fallback to old format
-        images = p.imagesCSV.split(",").filter(Boolean).map(img => `${AMAZON_IMG}${img}`);
       }
 
-      // Rating: p.stats.current[16] = current rating (Keepa csv type 16 = RATING)
-      // Keepa stores rating as integer * 10 (e.g. 45 = 4.5 stars)
+      // Rating from csv[16] (RATING time series): [time, value, time, value, ...]
+      // Values are rating * 10 (e.g. 45 = 4.5 stars), odd indices are values
       let rating = null;
-      if (p.stats && p.stats.current && Array.isArray(p.stats.current) && p.stats.current[16] > 0) {
-        rating = (p.stats.current[16] / 10).toFixed(1);
-      } else if (p.csv && p.csv[16] && p.csv[16].length >= 2) {
-        // csv[16] format: [time1, value1, time2, value2, ...]
-        // last value is at index length-1
-        const lastRating = p.csv[16][p.csv[16].length - 1];
-        if (lastRating > 0) rating = (lastRating / 10).toFixed(1);
+      if (p.csv && p.csv[16] && p.csv[16].length >= 2) {
+        // Walk backwards through odd indices to find last valid rating
+        for (let i = p.csv[16].length - 1; i >= 1; i -= 2) {
+          if (p.csv[16][i] > 0) {
+            rating = (p.csv[16][i] / 10).toFixed(1);
+            break;
+          }
+        }
       }
 
       const catInfo = getCategoryInfo(p.rootCategory);
