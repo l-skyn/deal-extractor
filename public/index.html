@@ -283,7 +283,7 @@ function renderDeals() {
         ${d.status === 'done' ? `<input type="checkbox" class="deal-checkbox" id="cb-${i}" ${d.selected ? 'checked' : ''} onchange="toggleDeal(${i}, this.checked)"/>` : `<div class="deal-num">${d.id}</div>`}
         ${d.images && d.images.length ? `<img class="deal-thumb" src="${d.images[0]}" onerror="this.style.display='none'" loading="lazy"/>` : ''}
         <div style="flex:1">
-          <div class="deal-title">${d.keepaTitle || d.productTitle || 'Processing...'}</div>
+          <div class="deal-title">${d.keepaTitle || d.productTitle || d.description || '(title after enrichment)'}</div>
           <div class="deal-meta">
             ${d.asin ? `<span>ASIN: ${d.asin}</span>` : ''}
           </div>
