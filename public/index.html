@@ -296,9 +296,10 @@ function renderDeals() {
             ${d.primeDiscount ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#818cf8;background:rgba(129,140,248,0.12);border:1px solid rgba(129,140,248,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].primeDiscount=this.textContent.replace('👑','').replace('for Prime Members','').trim();updateOutput(${i})" spellcheck="false">👑 ${d.primeDiscount} for Prime Members</span>` : ''}
             ${d.isPriceDrop ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:700;color:#60a5fa;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);border-radius:6px;padding:3px 10px">📉 Price Drop from reg. <span contenteditable="true" style="min-width:40px;outline:none;border-bottom:1px dashed rgba(96,165,250,0.5);padding:0 2px" onblur="deals[${i}].priceDropFrom=this.textContent.trim()" placeholder="£??" spellcheck="false">${d.primeDropFrom||'£??'}</span></span>` : ''}
           </div>
-          ${d.category ? `<div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+          ${d.category ? `<div style="display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap">
             <span style="font-size:0.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px;color:var(--text2);font-family:var(--mono)">📂 ${d.category}</span>
             <span style="font-size:0.72rem;background:var(--success-dim);border:1px solid rgba(35,197,94,0.25);border-radius:100px;padding:2px 8px;color:var(--success);font-family:var(--mono);font-weight:600">💰 ${d.commissionRate}% commission</span>
+            ${d.rating ? `<span style="font-size:0.72rem;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:100px;padding:2px 8px;color:#fbbf24;font-family:var(--mono);font-weight:600">⭐ ${d.rating}</span>` : ''}
           </div>` : ''}
           ${d.shortLink ? `<a class="deal-link" href="${d.shortLink}" target="_blank">${d.shortLink}</a>` : ''}
           ${d.status === 'error' ? `<div style="font-size:0.72rem;color:var(--error);margin-top:4px">✗ ${d.error}</div>` : ''}
@@ -557,9 +558,10 @@ function renderKeepaDeals() {
             ${d.avgPrice ? `<span style="text-decoration:line-through;color:var(--text3)">avg £${d.avgPrice}</span>` : ''}
             ${d.asin ? `<span>ASIN: ${d.asin}</span>` : ''}
           </div>
-          ${d.category ? `<div style="display:flex;gap:8px;margin-top:6px">
+          ${d.category ? `<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
             <span style="font-size:0.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px;color:var(--text2);font-family:var(--mono)">📂 ${d.category}</span>
             <span style="font-size:0.72rem;background:var(--success-dim);border:1px solid rgba(35,197,94,0.25);border-radius:100px;padding:2px 8px;color:var(--success);font-family:var(--mono);font-weight:600">💰 ${d.commissionRate}% commission</span>
+            ${d.rating ? `<span style="font-size:0.72rem;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:100px;padding:2px 8px;color:#fbbf24;font-family:var(--mono);font-weight:600">⭐ ${d.rating}</span>` : ''}
           </div>` : ''}
           ${d.shortLink ? `<a class="deal-link" href="${d.shortLink}" target="_blank">${d.shortLink}</a>` : ''}
           ${d.status === 'error' ? `<div style="font-size:0.72rem;color:var(--error);margin-top:4px">✗ ${d.error}</div>` : ''}
