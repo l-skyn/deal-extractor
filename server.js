@@ -242,7 +242,7 @@ function getCategoryRate(categoryName) {
 // ── Keepa product lookup ──────────────────────
 async function keepaLookup(asin, domain) {
   try {
-    const res  = await fetch(`${KEEPA_API}/product?key=${config.keepaApiKey}&domain=${domain||2}&asin=${asin}&history=0&stats=1`);
+    const res  = await fetch(`${KEEPA_API}/product?key=${config.keepaApiKey}&domain=${domain||2}&asin=${asin}&history=0&stats=90`);
     const data = await res.json();
     if (data.products && data.products.length > 0) {
       const p = data.products[0];
@@ -260,12 +260,14 @@ async function keepaLookup(asin, domain) {
         images = p.imagesCSV.split(",").filter(Boolean).map(img => `${AMAZON_IMG}${img}`);
       }
 
-      // Rating: p.stats.current[RATING] or p.csv[RATING] — index 16 in csv array
+      // Rating: p.stats.current[16] = current rating (Keepa csv type 16 = RATING)
       // Keepa stores rating as integer * 10 (e.g. 45 = 4.5 stars)
       let rating = null;
-      if (p.stats && p.stats.current && p.stats.current[16] > 0) {
+      if (p.stats && p.stats.current && Array.isArray(p.stats.current) && p.stats.current[16] > 0) {
         rating = (p.stats.current[16] / 10).toFixed(1);
-      } else if (p.csv && p.csv[16] && p.csv[16].length > 0) {
+      } else if (p.csv && p.csv[16] && p.csv[16].length >= 2) {
+        // csv[16] format: [time1, value1, time2, value2, ...]
+        // last value is at index length-1
         const lastRating = p.csv[16][p.csv[16].length - 1];
         if (lastRating > 0) rating = (lastRating / 10).toFixed(1);
       }
@@ -273,6 +275,9 @@ async function keepaLookup(asin, domain) {
       const catInfo = getCategoryInfo(p.rootCategory);
       const commissionRate = getCategoryRate(catInfo.name);
       console.log("rootCategory:", p.rootCategory, "→", catInfo.name, commissionRate + "% | rating:", rating, "| images:", images.length);
+      console.log("RAW images field:", JSON.stringify(p.images ? p.images.slice(0,2) : null));
+      console.log("RAW imagesCSV:", p.imagesCSV ? p.imagesCSV.slice(0,100) : null);
+      console.log("RAW stats.current:", JSON.stringify(p.stats ? p.stats.current : null));
       return { title: p.title, images, category: catInfo.name, commissionRate, rating };
     }
     return { title: null, images: [], category: "Other", commissionRate: 4, rating: null };
