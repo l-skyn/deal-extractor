@@ -465,6 +465,7 @@ async function sendToScheduler() {
       d.primeDiscount ? `👑 ${d.primeDiscount} for Prime members` : '',
       d.extraDiscount ? `➕ Extra ${d.extraDiscount} available!` : '',
       d.extraDiscountWithVoucher ? `🎟️ Extra ${d.extraDiscountWithVoucher} with voucher` : '',
+      d.isPriceDrop ? `📉 Price Drop${d.priceDropFrom ? ' — now under ' + d.priceDropFrom : ''}` : '',
     ].filter(Boolean).join('\n'),
     link: d.shortLink || d.originalLink,
     promoCode: d.promoCode || '',
