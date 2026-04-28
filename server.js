@@ -116,8 +116,10 @@ function parseDeals(raw) {
     const primeDiscount = primeMatch ? primeMatch[1] + "% OFF" : null;
 
     // Price drop
-    const priceDropLine = lines.find(l => /price\s*drop/i.test(l) || /was\s*£/i.test(l) || /reduced\s*from/i.test(l));
+    const priceDropLine = lines.find(l => /price\s*drop/i.test(l) || /was\s*£/i.test(l) || /reduced\s*from/i.test(l) || /price\s*drops?\s*under/i.test(l) || /under\s*£/i.test(l));
     const isPriceDrop   = !!priceDropLine && !discount && !discountWithVoucher && !checkoutDiscount && !primeDiscount;
+    const priceDropMatch = priceDropLine ? priceDropLine.match(/£(\d+(?:\.\d+)?)/) : null;
+    const priceDropFrom = priceDropMatch ? '£' + priceDropMatch[1] : null;
 
     // Product title — line after AMAZON.CO.UK or AMZLINK.TO (case-insensitive)
     const titleMarkerIdx = lines.findIndex(l =>
@@ -139,7 +141,7 @@ function parseDeals(raw) {
       checkoutDiscount,
       primeDiscount,
       isPriceDrop: isPriceDrop || false,
-      priceDropFrom: null,
+      priceDropFrom,
       productTitle,
       description,
       isOwnLink: !!(link && link.includes('linktw.in') && isOwnFormat),
