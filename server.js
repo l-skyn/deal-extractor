@@ -295,6 +295,8 @@ async function keepaLookup(asin, domain) {
       const catInfo = getCategoryInfo(p.rootCategory);
       const commissionRate = getCategoryRate(catInfo.name);
       console.log("rootCategory:", p.rootCategory, "→", catInfo.name, commissionRate + "% | rating:", rating, "| images:", images.length);
+      console.log("stats.avg:", JSON.stringify(p.stats ? p.stats.avg : null));
+      console.log("stats.min:", JSON.stringify(p.stats ? p.stats.min : null));
       return { title: p.title, images, category: catInfo.name, commissionRate, rating, avgPrice, lowestPrice };
     }
     return { title: null, images: [], category: "Other", commissionRate: 4, rating: null };
@@ -440,7 +442,7 @@ function formatForPaste(deals) {
   }).join("\n");
 }
 
-app.listen(PORT, () => console.log(`\n  Deal Extractor at http://localhost:${PORT}\n`));
+app.listen(PORT, () => console.log(`\n  Deal Extractor at http://localhost:${PORT} [v2 - voucher+avgPrice fix]\n`));
 
 // ── Keepa Deals Browser ───────────────────────
 app.post("/api/keepa-deals", async (req, res) => {
