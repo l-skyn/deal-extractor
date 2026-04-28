@@ -280,10 +280,22 @@ async function keepaLookup(asin, domain) {
         }
       }
 
+      // Avg price (90-day) and lowest recorded price from stats
+      let avgPrice = null;
+      let lowestPrice = null;
+      if (p.stats) {
+        if (p.stats.avg && Array.isArray(p.stats.avg) && p.stats.avg[0] > 0) {
+          avgPrice = (p.stats.avg[0] / 100).toFixed(2);
+        }
+        if (p.stats.min && Array.isArray(p.stats.min) && p.stats.min[0] > 0) {
+          lowestPrice = (p.stats.min[0] / 100).toFixed(2);
+        }
+      }
+
       const catInfo = getCategoryInfo(p.rootCategory);
       const commissionRate = getCategoryRate(catInfo.name);
       console.log("rootCategory:", p.rootCategory, "→", catInfo.name, commissionRate + "% | rating:", rating, "| images:", images.length);
-      return { title: p.title, images, category: catInfo.name, commissionRate, rating };
+      return { title: p.title, images, category: catInfo.name, commissionRate, rating, avgPrice, lowestPrice };
     }
     return { title: null, images: [], category: "Other", commissionRate: 4, rating: null };
   } catch(e) {
@@ -386,12 +398,14 @@ app.post("/api/enrich", async (req, res) => {
   else if (amazonUrl.includes("amazon.fr")) domain = 4;
 
   // Step 2: Keepa
-  const { title, images, category, commissionRate, rating } = await keepaLookup(asin, domain);
+  const { title, images, category, commissionRate, rating, avgPrice, lowestPrice } = await keepaLookup(asin, domain);
   result.keepaTitle = title;
   result.images = images;
   result.category = category || "Other";
   result.commissionRate = commissionRate || 4;
   result.rating = rating || null;
+  result.avgPrice = avgPrice || null;
+  result.lowestPrice = lowestPrice || null;
 
   // Step 3: Generate caption
   const caption = await generateCaption(title || deal.productTitle, deal.discount, deal.extraDiscount);
