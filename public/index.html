@@ -300,6 +300,7 @@ function renderDeals() {
             <span style="font-size:0.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px;color:var(--text2);font-family:var(--mono)">📂 ${d.category}</span>
             <span style="font-size:0.72rem;background:var(--success-dim);border:1px solid rgba(35,197,94,0.25);border-radius:100px;padding:2px 8px;color:var(--success);font-family:var(--mono);font-weight:600">💰 ${d.commissionRate}% commission</span>
             ${d.rating ? `<span style="font-size:0.72rem;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);border-radius:100px;padding:2px 8px;color:#fbbf24;font-family:var(--mono);font-weight:600">⭐ ${d.rating}</span>` : ''}
+            ${d.currentPrice ? `<span style="font-size:0.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px;color:var(--text);font-family:var(--mono);font-weight:600">£${d.currentPrice}</span>` : ''}
             ${d.avgPrice ? `<span style="font-size:0.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px;color:var(--text2);font-family:var(--mono)">avg £${d.avgPrice}</span>` : ''}
             ${d.lowestPrice ? `<span style="font-size:0.72rem;background:rgba(35,197,94,0.08);border:1px solid rgba(35,197,94,0.2);border-radius:100px;padding:2px 8px;color:var(--success);font-family:var(--mono)">lowest £${d.lowestPrice}</span>` : ''}
           </div>` : ''}
