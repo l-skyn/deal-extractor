@@ -281,22 +281,26 @@ async function keepaLookup(asin, domain) {
       }
 
       // Avg price (90-day) and lowest recorded price from stats
+      // stats.avg is flat array indexed by csv type — try Amazon (0) then New (1)
+      // stats.min is array of [keepaTime, value] pairs or null — same indexing
       let avgPrice = null;
       let lowestPrice = null;
       if (p.stats) {
-        if (p.stats.avg && Array.isArray(p.stats.avg) && p.stats.avg[0] > 0) {
-          avgPrice = (p.stats.avg[0] / 100).toFixed(2);
+        if (p.stats.avg && Array.isArray(p.stats.avg)) {
+          const avgVal = p.stats.avg[0] > 0 ? p.stats.avg[0] : p.stats.avg[1] > 0 ? p.stats.avg[1] : null;
+          if (avgVal) avgPrice = (avgVal / 100).toFixed(2);
         }
-        if (p.stats.min && Array.isArray(p.stats.min) && p.stats.min[0] > 0) {
-          lowestPrice = (p.stats.min[0] / 100).toFixed(2);
+        if (p.stats.min && Array.isArray(p.stats.min)) {
+          const minEntry = p.stats.min[0] || p.stats.min[1];
+          if (minEntry && Array.isArray(minEntry) && minEntry[1] > 0) {
+            lowestPrice = (minEntry[1] / 100).toFixed(2);
+          }
         }
       }
 
       const catInfo = getCategoryInfo(p.rootCategory);
       const commissionRate = getCategoryRate(catInfo.name);
       console.log("rootCategory:", p.rootCategory, "→", catInfo.name, commissionRate + "% | rating:", rating, "| images:", images.length);
-      console.log("stats.avg:", JSON.stringify(p.stats ? p.stats.avg : null));
-      console.log("stats.min:", JSON.stringify(p.stats ? p.stats.min : null));
       return { title: p.title, images, category: catInfo.name, commissionRate, rating, avgPrice, lowestPrice };
     }
     return { title: null, images: [], category: "Other", commissionRate: 4, rating: null };
