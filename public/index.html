@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Sir Deals — Post Scheduler</title>
+<title>Deal Extractor</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -17,497 +17,225 @@
   --r:10px;--rr:14px;
 }
 body{background:var(--bg);font-family:var(--sans);color:var(--text);min-height:100vh}
-.shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
-.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:1.5rem 1rem;display:flex;flex-direction:column;gap:0.5rem;position:sticky;top:0;height:100vh}
-.main{padding:2rem;overflow-y:auto}
-.logo{display:flex;align-items:center;gap:10px;padding:0.5rem 0.75rem;margin-bottom:1rem}
-.logo-icon{width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;font-family:var(--mono);flex-shrink:0}
-.logo-text{font-size:0.88rem;font-weight:600}.logo-sub{font-size:0.68rem;color:var(--text3);font-family:var(--mono)}
-.nav-btn{display:flex;align-items:center;gap:10px;padding:0.6rem 0.75rem;border-radius:var(--r);cursor:pointer;font-size:0.85rem;color:var(--text2);background:none;border:none;width:100%;text-align:left;font-family:var(--sans);transition:all 0.15s}
-.nav-btn:hover{background:var(--surface2);color:var(--text)}
-.nav-btn.active{background:var(--accent-dim);color:var(--accent)}
-.nav-icon{font-size:1rem;width:20px;text-align:center}
-.sidebar-bottom{margin-top:auto}
-.cred-status{padding:0.75rem;background:var(--surface2);border-radius:var(--r);font-size:0.72rem;font-family:var(--mono);color:var(--text3);border:1px solid var(--border)}
-.cred-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
-.cred-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.cred-dot.ok{background:var(--success)}.cred-dot.bad{background:var(--error)}
-.panel{display:none}.panel.active{display:block}
-.page-title{font-size:1.4rem;font-weight:600;margin-bottom:0.4rem;letter-spacing:-0.02em}
-.page-sub{font-size:0.82rem;color:var(--text3);margin-bottom:2rem}
+.app{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.logo{width:36px;height:36px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;font-family:var(--mono);flex-shrink:0}
+.header h1{font-size:1.1rem;font-weight:600}
+.header p{font-size:0.75rem;color:var(--text3);margin-top:2px;font-family:var(--mono)}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rr);padding:1.5rem;margin-bottom:1.2rem}
 .card-title{font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:1rem}
-.field{margin-bottom:1rem}.field:last-child{margin-bottom:0}
 .label{display:block;font-size:0.78rem;font-weight:500;color:var(--text2);margin-bottom:0.4rem}
-.sublabel{font-size:0.72rem;color:var(--text3);margin-bottom:0.5rem;display:block;line-height:1.6}
-input[type="text"],input[type="time"],textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:0.88rem;padding:0.65rem 0.9rem;outline:none;transition:border-color 0.15s;resize:vertical;-webkit-appearance:none;appearance:none}
-input:focus,textarea:focus,select:focus{border-color:var(--accent)}
-select option{background:var(--surface2)}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-
-/* Post type selector */
-.type-selector{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem}
-.type-opt{padding:0.75rem 0.5rem;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;text-align:center;transition:all 0.15s;background:none}
-.type-opt:hover{border-color:var(--accent)}
-.type-opt.active{border-color:var(--accent);background:var(--accent-dim)}
-.type-opt-icon{font-size:1.1rem;margin-bottom:4px}
-.type-opt-label{font-size:0.7rem;font-weight:500;color:var(--text2);line-height:1.3}
-.type-opt.active .type-opt-label{color:var(--accent)}
-
-/* Image options */
-.color-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:0.5rem}
-.color-preset{width:28px;height:28px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s;flex-shrink:0}
-.color-preset:hover,.color-preset.active{border-color:var(--text)}
-.image-preview{width:100%;height:110px;border-radius:var(--r);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.82rem;font-weight:600;margin-top:0.75rem;word-break:break-word;padding:12px;text-align:center;transition:all 0.2s}
-
-/* Background preset grid */
-.bg-preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:0.75rem;max-height:280px;overflow-y:auto;padding-right:4px}
-.bg-preset-item{border-radius:var(--r);cursor:pointer;border:2px solid transparent;transition:all 0.15s;overflow:hidden;aspect-ratio:1}
-.bg-preset-item:hover{border-color:var(--text2)}
-.bg-preset-item.active{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
-.bg-preset-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:600;text-align:center;padding:4px;line-height:1.3;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
-.char-counter{font-size:0.7rem;font-family:var(--mono);text-align:right;margin-top:4px}
-.char-counter.warn{color:var(--warn)}
-.char-counter.over{color:var(--error)}
-
-/* Bookend */
-.bookend-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:0.85rem;margin-bottom:0.75rem}
-.bookend-card:last-child{margin-bottom:0}
-.bookend-label{font-size:0.68rem;font-family:var(--mono);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.5rem}
-.bookend-label.first{color:var(--accent)}.bookend-label.last{color:var(--success)}
-
-/* Comments */
-.comments-list{display:flex;flex-direction:column;gap:0.75rem;margin-bottom:0.75rem}
-.comment-entry{background:#fff;border:1px solid #e2e8f0;border-radius:var(--r);padding:1rem;position:relative}
-.comment-entry-num{font-size:0.68rem;font-family:var(--mono);color:#6b7280;margin-bottom:0.5rem}
-.comment-entry textarea{min-height:90px;margin-bottom:0.5rem;font-size:0.82rem;color:#111827;background:#ffffff}
-.comment-entry .link-input{font-family:var(--mono);font-size:0.78rem;margin-bottom:0.5rem;color:#111827}
-.promo-toggle{font-size:0.72rem;color:var(--text3);cursor:pointer;background:none;border:none;font-family:var(--mono);text-decoration:underline;padding:0}
-.promo-toggle:hover{color:var(--accent)}
-.promo-input{display:none;margin-top:0.5rem}
-.promo-input.open{display:block}
-.promo-input input{font-family:var(--mono);font-size:0.78rem;background:var(--surface3)}
-.discount-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:0.5rem}
-.discount-field{display:flex;align-items:center;gap:6px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px}
-.discount-field label{font-size:0.7rem;color:#6b7280;white-space:nowrap;min-width:20px}
-.discount-field input{border:none;background:none;font-size:0.78rem;font-family:var(--mono);color:#111827;width:100%;outline:none}
-.ce-thumb{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;float:right;margin:0 0 8px 12px}
-.comment-entry-remove{position:absolute;top:0.6rem;right:0.6rem;background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.85rem;padding:2px 6px;border-radius:4px}
-.comment-entry-remove:hover{color:var(--error);background:var(--error-dim)}
-.btn-add-comment{display:flex;align-items:center;gap:6px;padding:0.5rem 1rem;background:none;border:1px dashed var(--border);border-radius:var(--r);color:var(--text3);cursor:pointer;font-size:0.82rem;font-family:var(--sans);width:100%;justify-content:center;transition:all 0.15s}
-.btn-add-comment:hover{border-color:var(--accent);color:var(--accent)}
-.comment-count{font-size:0.72rem;color:var(--text3);font-family:var(--mono);text-align:right;margin-top:6px}
-.paste-toggle{display:flex;gap:6px;margin-bottom:1rem}
-.paste-tab{padding:0.35rem 0.9rem;border-radius:100px;font-size:0.75rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:none;color:var(--text3);transition:all 0.15s;font-family:var(--sans)}
-.paste-tab.active{background:var(--accent-dim);border-color:rgba(24,119,242,0.3);color:var(--accent)}
-
-/* Buttons */
+input[type="text"],textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:0.88rem;padding:0.65rem 0.9rem;outline:none;transition:border-color 0.15s;resize:vertical;-webkit-appearance:none;appearance:none}
+input:focus,textarea:focus{border-color:var(--accent)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0.7rem 1.4rem;border-radius:var(--r);font-size:0.88rem;font-weight:500;cursor:pointer;border:none;transition:all 0.15s;font-family:var(--sans)}
-.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary{background:var(--accent);color:#fff}
 .btn-primary:hover:not(:disabled){background:var(--accent-hover)}
 .btn-primary:disabled{opacity:0.4;cursor:not-allowed}
-.btn-danger{background:none;border:1px solid var(--border);color:var(--error);padding:0.4rem 0.8rem;font-size:0.78rem}
+.btn-sm{padding:0.4rem 0.8rem;font-size:0.76rem;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-success{background:var(--success-dim);border:1px solid rgba(35,197,94,0.3);color:#14532d;padding:0.5rem 1rem;font-size:0.82rem}
+.btn-success:hover{background:rgba(35,197,94,0.2)}
+.btn-danger{background:none;border:1px solid var(--border);color:var(--error);padding:0.4rem 0.8rem;font-size:0.76rem}
 .btn-danger:hover{background:var(--error-dim);border-color:var(--error)}
-.btn-run{background:var(--success-dim);border:1px solid rgba(35,197,94,0.3);color:var(--success);padding:0.4rem 0.8rem;font-size:0.78rem}
-.btn-run:hover{background:rgba(35,197,94,0.2)}
-.btn-edit{background:var(--accent-dim);border:1px solid rgba(24,119,242,0.3);color:var(--accent);padding:0.4rem 0.8rem;font-size:0.78rem}
-.btn-edit:hover{background:rgba(24,119,242,0.2)}
 
-/* Queue */
-.job-list{display:flex;flex-direction:column;gap:0.75rem}
-.job-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rr);padding:1.2rem 1.4rem}
-.job-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:0.5rem}
-.job-caption{font-size:0.9rem;font-weight:500;color:var(--text);line-height:1.4}
-.job-meta{display:flex;gap:1rem;font-size:0.75rem;color:var(--text3);font-family:var(--mono);flex-wrap:wrap;margin-top:6px}
-.job-actions{display:flex;gap:6px;flex-shrink:0}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:600;font-family:var(--mono)}
-.badge-scheduled{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(24,119,242,0.25)}
-.badge-running{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(245,158,11,0.25)}
-.badge-done{background:var(--success-dim);color:var(--success);border:1px solid rgba(35,197,94,0.25)}
-.badge-failed,.badge-done_with_errors{background:var(--error-dim);color:var(--error);border:1px solid rgba(239,68,68,0.25)}
-.running-dot{width:6px;height:6px;border-radius:50%;background:var(--warn);animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-.log-toggle{font-size:0.72rem;color:var(--text3);font-family:var(--mono);cursor:pointer;margin-top:0.75rem;border:none;background:none;padding:0;text-decoration:underline}
-.log-toggle:hover{color:var(--text2)}
-.log-box{background:var(--surface2);border-radius:var(--r);padding:0.75rem;font-family:var(--mono);font-size:0.72rem;line-height:1.8;margin-top:0.5rem;max-height:180px;overflow-y:auto;display:none}
-.log-box.open{display:block}
-.log-ok{color:var(--success)}.log-error{color:var(--error)}.log-info{color:var(--accent)}
-.empty{text-align:center;padding:4rem 2rem;color:var(--text3)}
-.empty-icon{font-size:2.5rem;margin-bottom:1rem}
-.empty p{font-size:0.88rem}
-.toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0.75rem 1.2rem;font-size:0.82rem;display:flex;align-items:center;gap:8px;transform:translateY(100px);opacity:0;transition:all 0.3s;z-index:999;max-width:360px}
+/* Stats bar */
+.stats-bar{display:flex;gap:1.5rem;padding:0.75rem 1rem;background:var(--surface2);border-radius:var(--r);margin-bottom:1.2rem;font-size:0.78rem;font-family:var(--mono)}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat-val{font-size:1.1rem;font-weight:600;color:var(--text)}
+.stat-label{color:var(--text3)}
+.stat-val.ok{color:#14532d}
+.stat-val.err{color:var(--error)}
+.stat-val.pending{color:var(--warn)}
+
+/* Deal cards */
+.deal-list{display:flex;flex-direction:column;gap:0.75rem}
+.deal-card{background:#fff;border:1px solid #e2e8f0;border-radius:var(--rr);padding:1.2rem 1.4rem;transition:border-color 0.2s}
+.deal-card.done{border-color:#86efac;border-left:4px solid #16a34a}
+.deal-card.error{border-color:#fca5a5;border-left:4px solid #dc2626}
+.deal-card.processing{border-color:#93c5fd;border-left:4px solid #3b82f6}
+.deal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:0.75rem}
+.deal-num{width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text3);font-size:0.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+.deal-title{font-size:0.88rem;font-weight:600;color:#111827;flex:1;line-height:1.4}
+.deal-meta{display:flex;gap:0.75rem;font-size:0.72rem;font-family:var(--mono);color:#6b7280;flex-wrap:wrap;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:0.67rem;font-weight:600;font-family:var(--mono)}
+.badge-pending{background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb}
+.badge-processing{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(245,158,11,0.25)}
+.badge-done{background:#dcfce7;color:#14532d;border:1px solid #86efac}
+.badge-error{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.pulse{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Caption editor */
+.caption-editor{background:#f9fafb;color:#111827;border:1px solid #e5e7eb;border-radius:var(--r);padding:0.75rem;font-size:0.82rem;line-height:1.7;min-height:60px;white-space:pre-wrap;margin-top:0.75rem;cursor:text;outline:none}
+.caption-editor:focus{border-color:var(--accent)}
+.deal-link{font-family:var(--mono);font-size:0.72rem;color:var(--accent);margin-top:4px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.deal-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* Progress bar */
+.progress-wrap{height:3px;background:var(--border);border-radius:99px;margin-bottom:1.2rem;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 0.4s ease}
+
+/* Scheduler URL field */
+.scheduler-row{display:flex;gap:8px;align-items:flex-end;margin-top:0.75rem}
+.scheduler-row input{flex:1}
+
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0.75rem 1.2rem;font-size:0.82rem;transform:translateY(100px);opacity:0;transition:all 0.3s;z-index:999;max-width:360px}
 .toast.show{transform:translateY(0);opacity:1}
-.toast.ok{border-color:rgba(35,197,94,0.4);color:var(--success)}
+.toast.ok{border-color:rgba(35,197,94,0.4);color:#14532d}
 .toast.err{border-color:rgba(239,68,68,0.4);color:var(--error)}
-.settings-note{font-size:0.78rem;color:var(--text3);line-height:1.8;margin-top:0.5rem}
-.staging-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rr);padding:1rem 1.2rem;display:flex;gap:12px;align-items:flex-start;margin-bottom:0.75rem}
-.staging-thumb{width:70px;height:70px;border-radius:var(--r);object-fit:cover;flex-shrink:0;border:1px solid var(--border);background:var(--surface2)}
-.staging-thumb-placeholder{width:70px;height:70px;border-radius:var(--r);flex-shrink:0;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:1.2rem}
-.staging-text{font-size:0.8rem;color:var(--text2);white-space:pre-wrap;line-height:1.5;margin-top:4px;max-height:80px;overflow:hidden}
-.staging-link{font-size:0.72rem;font-family:var(--mono);color:var(--accent);margin-top:4px;display:block}
 
-.settings-note code{font-family:var(--mono);background:var(--surface2);padding:1px 6px;border-radius:4px;font-size:0.72rem}
-.timing-info{background:var(--warn-dim);border:1px solid rgba(245,158,11,0.2);border-radius:var(--r);padding:0.75rem 1rem;font-size:0.76rem;color:var(--warn);font-family:var(--mono);margin-top:0.75rem;line-height:1.7}
-.info-box{background:var(--accent-dim);border:1px solid rgba(24,119,242,0.2);border-radius:var(--r);padding:0.75rem 1rem;font-size:0.76rem;color:var(--text2);line-height:1.7;margin-bottom:0.75rem}
-.info-box strong{color:var(--text)}
+.empty{text-align:center;padding:3rem;color:var(--text3);font-size:0.88rem}
+.tab-btn{flex:1;padding:0.5rem 1rem;border:none;background:none;color:var(--text2);border-radius:6px;cursor:pointer;font-size:0.82rem;font-weight:500;font-family:var(--sans);transition:all 0.15s}
+.tab-btn.active{background:var(--accent);color:#fff}
+.tab-btn:hover:not(.active){background:var(--surface2);color:var(--text)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem;margin-bottom:1rem}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin-top:0.5rem}
+.cat-check{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text2);cursor:pointer}
+.cat-check input{width:14px;height:14px;cursor:pointer}
+.deal-checkbox{width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;flex-shrink:0;appearance:none;-webkit-appearance:none;transition:all 0.15s;margin-top:3px}
+.deal-checkbox:checked{background:var(--accent);border-color:var(--accent)}
+.deal-checkbox:checked::after{content:'✓';color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.deal-thumb{width:80px;height:80px;border-radius:var(--r);object-fit:cover;border:1px solid var(--border);flex-shrink:0;background:var(--surface2)}
+.select-all-row{display:flex;align-items:center;gap:8px;margin-bottom:0.75rem;font-size:0.78rem;color:var(--text2)}
+.select-all-row input{width:18px;height:18px;border-radius:4px;cursor:pointer}
 </style>
 </head>
 <body>
-<div class="shell">
-  <div class="sidebar">
-    <div class="logo">
-      <div class="logo-icon">f</div>
-      <div><div class="logo-text">Sir Deals</div><div class="logo-sub">Post Scheduler v3.2</div></div>
-    </div>
-    <button class="nav-btn active" onclick="showPanel('schedule')" id="nav-schedule"><span class="nav-icon">＋</span>New Post</button>
+<div class="app">
 
-    <button class="nav-btn" onclick="showPanel('extractor')" id="nav-extractor"><span class="nav-icon">📥</span>Extractor<span id="extractor-count" style="margin-left:auto;font-size:0.7rem;background:var(--surface3);padding:1px 7px;border-radius:100px;font-family:var(--mono)">0</span></button>
-    <button class="nav-btn" onclick="showPanel('queue')" id="nav-queue"><span class="nav-icon">≡</span>Queue<span id="queue-count" style="margin-left:auto;font-size:0.7rem;background:var(--surface3);padding:1px 7px;border-radius:100px;font-family:var(--mono)">0</span></button>
-    <button class="nav-btn" onclick="showPanel('settings')" id="nav-settings"><span class="nav-icon">⚙</span>Settings</button>
-    <div class="sidebar-bottom">
-      <div class="cred-status">
-        <div class="cred-row"><div class="cred-dot" id="dot-token"></div><span>Access Token</span></div>
-        <div class="cred-row"><div class="cred-dot" id="dot-page"></div><span>Page ID</span></div>
+  <div style="display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:4px">
+    <button class="tab-btn active" id="tab-extract" onclick="switchTab('extract')">📋 Extract Deals</button>
+    <button class="tab-btn" id="tab-keepa" onclick="switchTab('keepa')">🔍 Keepa Browser</button>
+  </div>
+  <div class="header">
+    <div class="logo">⚡</div>
+    <div>
+      <h1>Deal Extractor</h1>
+      <p>Paste → Extract → Enrich → Send to Scheduler</p>
+    </div>
+  </div>
+
+  <!-- Step 1: Paste -->
+  <div class="card" id="paste-card">
+    <div class="card-title">Step 1 — Paste raw deal text</div>
+    <label class="label">Paste everything at once — all deals from the page</label>
+    <textarea id="raw-input" rows="10" placeholder="Author&#10;Jack's Hot Deals UK&#10;This Wave Cruiser Inflatable...&#10;53% OFF reduction&#10;..."></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem">
+      <span id="parse-preview" style="font-size:0.75rem;color:var(--text3);font-family:var(--mono)"></span>
+      <button class="btn btn-primary" onclick="parseDeals()" id="parse-btn">Extract Deals →</button>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div id="progress-section" style="display:none">
+    <div class="progress-wrap"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-val" id="stat-total">0</div><div class="stat-label">total</div></div>
+      <div class="stat"><div class="stat-val ok" id="stat-done">0</div><div class="stat-label">done</div></div>
+      <div class="stat"><div class="stat-val pending" id="stat-pending">0</div><div class="stat-label">processing</div></div>
+      <div class="stat"><div class="stat-val err" id="stat-error">0</div><div class="stat-label">errors</div></div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <button class="btn btn-sm" onclick="retryErrors()" id="retry-btn" style="display:none">Retry errors</button>
+        <button class="btn btn-sm" onclick="processAll()" id="process-btn">Process all →</button>
       </div>
     </div>
   </div>
 
-  <div class="main">
-
-    <!-- NEW POST -->
-    <div class="panel active" id="panel-schedule">
-      <div class="page-title">New Scheduled Post</div>
-      <div class="page-sub">Choose a post type, add your content, pick a time.</div>
-      <div id="edit-banner" style="display:none;background:var(--accent-dim);border:1px solid rgba(24,119,242,0.3);border-radius:var(--r);padding:0.75rem 1rem;font-size:0.82rem;color:var(--accent);margin-bottom:1.2rem;display:none;justify-content:space-between;align-items:center">
-        <span>✏️ Editing scheduled post — make your changes below</span>
-        <button onclick="cancelEdit()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.78rem;text-decoration:underline;font-family:var(--sans)">Cancel edit</button>
-      </div>
-
-      <!-- Post Type + Caption -->
-      <div class="card">
-        <div class="card-title">Post Type</div>
-        <div class="type-selector">
-          <div class="type-opt active" onclick="setPostType('plain')" id="type-plain">
-            <div class="type-opt-icon">📝</div><div class="type-opt-label">Plain text</div>
-          </div>
-          <div class="type-opt" onclick="setPostType('styled')" id="type-styled">
-            <div class="type-opt-icon">𝗕</div><div class="type-opt-label">Bold styled</div>
-          </div>
-          <div class="type-opt" onclick="setPostType('background')" id="type-background">
-            <div class="type-opt-icon">🎨</div><div class="type-opt-label">FB Background</div>
-          </div>
-          <div class="type-opt" onclick="setPostType('image')" id="type-image">
-            <div class="type-opt-icon">🖼</div><div class="type-opt-label">Custom image</div>
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="label">Post Caption</label>
-          <textarea id="caption" rows="3" placeholder="Write your main Facebook post here…" oninput="onCaptionInput()"></textarea>
-          <div class="char-counter" id="char-counter" style="display:none"></div>
-        </div>
-
-        <!-- FB Background options -->
-        <div id="background-options" style="display:none">
-          <div class="info-box">
-            <strong>Facebook Native Background</strong> — uses Facebook's built-in color/pattern backgrounds.
-            Max <strong>130 characters</strong>. No images or link previews. Pages only.
-          </div>
-          <label class="label">Choose a background preset</label>
-          <div class="bg-preset-grid" id="bg-preset-grid"></div>
-        </div>
-
-        <!-- Custom image options -->
-        <div id="image-options" style="display:none">
-          <div class="row2" style="margin-top:0.75rem">
-            <div>
-              <label class="label">Background color</label>
-              <div class="color-presets" id="bg-presets">
-                <div class="color-preset active" style="background:#1877f2" onclick="setBgColor('#1877f2',this)"></div>
-                <div class="color-preset" style="background:#e41e3f" onclick="setBgColor('#e41e3f',this)"></div>
-                <div class="color-preset" style="background:#1a7f37" onclick="setBgColor('#1a7f37',this)"></div>
-                <div class="color-preset" style="background:#f59e0b" onclick="setBgColor('#f59e0b',this)"></div>
-                <div class="color-preset" style="background:#8b5cf6" onclick="setBgColor('#8b5cf6',this)"></div>
-                <div class="color-preset" style="background:#ec4899" onclick="setBgColor('#ec4899',this)"></div>
-                <div class="color-preset" style="background:#0f172a" onclick="setBgColor('#0f172a',this)"></div>
-                <input type="color" value="#1877f2" id="bg-color-picker" style="width:28px;height:28px;border-radius:6px;border:2px solid var(--border);cursor:pointer;padding:0" oninput="setBgColor(this.value,null)"/>
-              </div>
-            </div>
-            <div>
-              <label class="label">Text color</label>
-              <div class="color-presets">
-                <div class="color-preset active" style="background:#ffffff;border-color:var(--border)" onclick="setTextColor('#ffffff',this)"></div>
-                <div class="color-preset" style="background:#000000" onclick="setTextColor('#000000',this)"></div>
-                <div class="color-preset" style="background:#fbbf24" onclick="setTextColor('#fbbf24',this)"></div>
-                <input type="color" value="#ffffff" id="text-color-picker" style="width:28px;height:28px;border-radius:6px;border:2px solid var(--border);cursor:pointer;padding:0" oninput="setTextColor(this.value,null)"/>
-              </div>
-            </div>
-          </div>
-          <div class="image-preview" id="img-preview">Preview will show here</div>
-        </div>
-      </div>
-
-      <!-- Bookend comments -->
-      <div class="card">
-        <div class="card-title">Bookend Comments</div>
-        <div class="bookend-card">
-          <div class="bookend-label first">▲ First comment</div>
-          <textarea id="first-comment" rows="4">Hey everyone! I'm getting all the links ready and will be dropping some cracking deals in just a few minutes! If you see this post, PLEASE GIVE IT A LIKE. 👍
-Why? Two reasons:
-
-1️⃣ FIRST: It helps the page get more visibility (which means I can snag better discounts from sellers = cheaper prices for you!). 📉
-
-2️⃣ SECOND: Every 'Like' gives you an entry into our Giveaway! I'll be picking one lucky follower to win a £10 Amazon voucher. 🎁🎟️
-That's all! Stick around and enjoy the deals!</textarea>
-        </div>
-        <div class="bookend-card">
-          <div class="bookend-label last">▼ Last comment</div>
-          <textarea id="last-comment" rows="4">🟩🟩🟩🟩🟩🟩
-THE DEALS ARE READY AND POSTED.
-You should see around 35-40 deals in the comments; Facebook will unfortunately hide most of them from you, so make sure to switch from "Most Relevant" to "All comments" to see them all.
-🟩🟩🟩🟩🟩🟩</textarea>
-        </div>
-      </div>
-
-      <!-- Deal Comments -->
-      <div class="card">
-        <div class="card-title">Deal Comments</div>
-        <div class="paste-toggle">
-          <button class="paste-tab active" onclick="setMode('builder')" id="mode-builder">Add one by one</button>
-          <button class="paste-tab" onclick="setMode('paste')" id="mode-paste">Paste all at once</button>
-        </div>
-
-        <div id="builder-mode">
-          <span class="sublabel">Each comment = deal text + link. Optionally add a promo code reply.</span>
-          <div class="comments-list" id="comments-list"></div>
-          <button class="btn-add-comment" onclick="addComment()">+ Add deal comment</button>
-          <div class="comment-count" id="comment-count">0 comments</div>
-        </div>
-
-        <div id="paste-mode" style="display:none">
-          <span class="sublabel">One block per comment, blank line between each. Add <code style="font-family:var(--mono);background:var(--surface2);padding:1px 5px;border-radius:4px">PROMO:</code> for promo codes.</span>
-          <div style="background:var(--surface2);border-radius:var(--r);padding:0.75rem 1rem;font-family:var(--mono);font-size:0.73rem;line-height:2;margin:0.75rem 0;border:1px solid var(--border);color:var(--text2)">
-            Amazing AirPods deal!<br>
-            https://linktw.in/abc123<br>
-            PROMO: SAVE20<br><br>
-            Great TV price today<br>
-            https://linktw.in/xyz456
-          </div>
-          <textarea id="paste-input" rows="14" style="font-family:var(--mono);font-size:0.78rem;line-height:1.8" placeholder="Your deal text&#10;https://your-link.com&#10;PROMO: CODE123&#10;&#10;Another deal&#10;https://another-link.com" oninput="updatePasteCount()"></textarea>
-          <div class="comment-count" id="paste-count">0 comments detected</div>
-        </div>
-
-        <div class="timing-info" id="timing-info">Estimated posting time: —</div>
-      </div>
-
-      <!-- Schedule -->
-      <div class="card">
-        <div class="card-title">Schedule</div>
-        <div class="row3">
-          <div class="field">
-            <label class="label">Time</label>
-            <input type="time" id="sched-time"/>
-          </div>
-          <div class="field">
-            <label class="label">Timezone</label>
-            <select id="sched-tz">
-  <option value="America/Montreal">ET — Montréal</option>
-  <option value="America/Toronto">ET — Toronto</option>
-  <option value="America/New_York">ET — New York</option>
-  <option value="America/Chicago">CT — Chicago</option>
-  <option value="America/Denver">MT — Denver</option>
-  <option value="America/Los_Angeles">PT — Los Angeles</option>
-  <option value="America/Vancouver">PT — Vancouver</option>
-  <option value="Europe/London">GMT — London</option>
-  <option value="Europe/Paris">CET — Paris</option>
-  <option value="Europe/Berlin">CET — Berlin</option>
-  <option value="UTC">UTC</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="label">Repeat</label>
-            <select id="repeat">
-              <option value="once">Once (one time)</option>
-              <option value="daily">Every day</option>
-              <option value="weekly">Every week</option>
-              <option value="monthly">Every month</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" id="schedule-btn" onclick="schedulePost()">Schedule Post</button>
-    </div>
-
-    <!-- QUEUE -->
-    <div class="panel" id="panel-queue">
-      <div class="page-title">Post Queue</div>
-      <div class="page-sub">All scheduled and completed posts. Auto-refreshes every 5s.</div>
-      <div class="job-list" id="job-list">
-        <div class="empty"><div class="empty-icon">📭</div><p>No posts scheduled yet.</p></div>
-      </div>
-    </div>
-
-    <!-- EXTRACTOR QUEUE -->
-    <div class="panel" id="panel-extractor">
-      <div class="page-title">Extractor Queue</div>
-      <div class="page-sub">Deals sent from the Deal Extractor. Select what to schedule, pick a time, and post.</div>
-
-      <div id="extractor-empty" class="empty" style="display:none">
-        <div class="empty-icon">📭</div>
-        <p>No deals staged yet. Send deals from the Deal Extractor.</p>
-      </div>
-
-      <div id="extractor-controls" style="display:none">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
-          <input type="checkbox" id="extractor-select-all" onchange="toggleAllStaged(this.checked)" style="width:16px;height:16px;cursor:pointer"/>
-          <label for="extractor-select-all" style="font-size:0.82rem;color:var(--text2);cursor:pointer">Select all</label>
-          <span id="extractor-selected-count" style="margin-left:auto;font-size:0.75rem;color:var(--text3);font-family:var(--mono)">0 selected</span>
-          <button class="btn btn-danger" style="padding:0.35rem 0.75rem;font-size:0.75rem" onclick="clearAllStaged()">Clear all</button>
-        </div>
-
-        <div id="staging-list"></div>
-
-        <div class="card" style="margin-top:1rem">
-          <div class="card-title">Bulk Add from Text</div>
-          <div style="font-size:0.78rem;color:var(--text3);margin-bottom:0.75rem">Paste deals in the same format as the scheduler. Each block = one deal.</div>
-          <textarea id="staging-bulk-paste" rows="8" style="font-family:var(--mono);font-size:0.78rem;line-height:1.8" placeholder="Your deal text&#10;https://your-link.com&#10;PROMO: CODE123&#10;&#10;Another deal&#10;https://another-link.com" oninput="updateStagingPasteCount()"></textarea>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem">
-            <span id="staging-paste-count" style="font-size:0.72rem;color:var(--text3);font-family:var(--mono)">0 deals detected</span>
-            <button class="btn btn-primary" style="padding:0.4rem 1rem;font-size:0.82rem" onclick="addBulkToStaging()">Add to Queue →</button>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:1rem">
-          <div class="card-title">Schedule Selected</div>
-          <div class="row3">
-            <div class="field">
-              <label class="label">Time</label>
-              <input type="time" id="staging-time"/>
-            </div>
-            <div class="field">
-              <label class="label">Timezone</label>
-              <select id="staging-tz">
-                <option value="America/Montreal">ET — Montréal</option>
-                <option value="America/Toronto">ET — Toronto</option>
-                <option value="America/New_York">ET — New York</option>
-                <option value="Europe/London">GMT — London</option>
-                <option value="Europe/Paris">CET — Paris</option>
-                <option value="UTC">UTC</option>
-              </select>
-            </div>
-            <div class="field">
-              <label class="label">Repeat</label>
-              <select id="staging-repeat">
-                <option value="once">Once</option>
-                <option value="daily">Every day</option>
-                <option value="weekly">Every week</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn btn-primary" style="margin-top:0.75rem" onclick="scheduleStaged()">Schedule Selected →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- SETTINGS -->
-    <div class="panel" id="panel-settings">
-      <div class="page-title">Settings</div>
-      <div class="page-sub">Your Facebook credentials — set once, saved locally.</div>
-      <div class="card">
-        <div class="card-title">Facebook Credentials</div>
-        <div class="field"><label class="label">Page Access Token</label><input type="text" id="s-token" placeholder="EAABsb…"/></div>
-        <div class="field"><label class="label">Page ID</label><input type="text" id="s-page-id" placeholder="1022280200960824"/></div>
-        <div style="margin-top:1rem"><button class="btn btn-primary" onclick="saveCredentials()">Save Credentials</button></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Telegram Notifications</div>
-        <div class="field"><label class="label">Bot Token</label><input type="text" id="s-tg-token" placeholder="123456789:ABCdef…"/></div>
-        <div class="field"><label class="label">Chat ID</label><input type="text" id="s-tg-chat" placeholder="6538329197"/></div>
-        <div style="margin-top:1rem;display:flex;gap:8px">
-          <button class="btn btn-primary" style="flex:1" onclick="saveCredentials()">Save All</button>
-          <button class="btn btn-primary" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2)" onclick="testTelegram()">Test Telegram</button>
-        </div>
-      </div>
-
-
+  <!-- Deal cards -->
+  <div class="select-all-row" id="select-all-row" style="display:none">
+    <input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this.checked)"/>
+    <label for="select-all-cb" style="cursor:pointer">Select all done deals</label>
+    <span id="selected-count" style="margin-left:auto;font-family:var(--mono);font-size:0.72rem;color:var(--text3)">0 selected</span>
   </div>
+  <div class="deal-list" id="deal-list"></div>
+
+  <!-- Send to Scheduler -->
+  <div id="send-section" style="display:none;margin-top:1.2rem">
+    <div class="card">
+      <div class="card-title">Send to FB Scheduler</div>
+      <div class="scheduler-row">
+        <div>
+          <label class="label">FB Scheduler URL</label>
+          <input type="text" id="scheduler-url" value="https://fb-scheduler-production.up.railway.app" placeholder="https://fb-scheduler-production.up.railway.app"/>
+        </div>
+        <button class="btn btn-success" onclick="sendToScheduler()">Send to Scheduler →</button>
+      </div>
+      <p style="font-size:0.75rem;color:var(--text3);margin-top:0.5rem">Only deals with status <span style="color:#14532d">Done</span> will be sent.</p>
+    </div>
+  </div>
+
 </div>
+  </div><!-- end panel-extract -->
+
+  <!-- KEEPA BROWSER TAB -->
+  <div class="tab-panel" id="panel-keepa">
+    <div class="card">
+      <div class="card-title">Browse Keepa Deals — UK</div>
+      <div class="filter-grid">
+        <div class="field">
+          <label class="label">Min Discount %</label>
+          <input type="number" id="kp-min-discount" value="50" min="0" max="99" style="width:100%"/>
+        </div>
+        <div class="field">
+          <label class="label">Max Price (£)</label>
+          <input type="number" id="kp-max-price" placeholder="No limit" min="0" style="width:100%"/>
+        </div>
+        <div class="field">
+          <label class="label">Min Rating ⭐</label>
+          <select id="kp-min-rating" style="width:100%">
+            <option value="">Any rating</option>
+            <option value="3">3+ stars</option>
+            <option value="3.5">3.5+ stars</option>
+            <option value="4" selected>4+ stars</option>
+            <option value="4.5">4.5+ stars</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Number of deals</label>
+          <select id="kp-limit" style="width:100%">
+            <option value="20" selected>20 deals</option>
+            <option value="50">50 deals</option>
+            <option value="100">100 deals</option>
+            <option value="150">150 deals (max)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Categories <span id="kp-cat-status" style="color:var(--text3);font-size:0.72rem;font-family:var(--mono)">(loading...)</span></label>
+        <div class="cat-grid" id="kp-cat-grid"><div style="color:var(--text3);font-size:0.78rem">Loading categories from Keepa...</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:0.75rem;margin-bottom:0.75rem">
+        <input type="checkbox" id="kp-dedupe" checked style="width:16px;height:16px;cursor:pointer"/>
+        <label for="kp-dedupe" style="font-size:0.82rem;color:var(--text2);cursor:pointer">One deal per product (deduplicate variants)</label>
+      </div>
+      <button class="btn btn-primary" onclick="fetchKeepaDeals()" id="kp-fetch-btn">Fetch Deals →</button>
+    </div>
+    <div id="kp-stats" style="display:none" class="stats-bar">
+      <div class="stat"><div class="stat-val" id="kp-total">0</div><div class="stat-label">found</div></div>
+      <div class="stat"><div class="stat-val ok" id="kp-done">0</div><div class="stat-label">enriched</div></div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <button class="btn btn-sm" id="kp-process-btn" onclick="processAllKeepa()">Enrich all →</button>
+      </div>
+    </div>
+    <div id="kp-progress-wrap" style="display:none" class="progress-wrap"><div class="progress-fill" id="kp-progress-fill" style="width:0%"></div></div>
+    <div class="deal-list" id="kp-deal-list"></div>
+    <div id="kp-send-section" style="display:none;margin-top:1.2rem">
+      <div class="card">
+        <div class="card-title">Send to FB Scheduler</div>
+        <div class="scheduler-row">
+          <div><label class="label">FB Scheduler URL</label><input type="text" id="kp-scheduler-url" value="https://fb-scheduler-production.up.railway.app"/></div>
+          <button class="btn btn-success" onclick="sendKeepaToScheduler()">Send to Scheduler →</button>
+        </div>
+        <p style="font-size:0.75rem;color:var(--text3);margin-top:0.5rem">Only checked deals will be sent.</p>
+      </div>
+    </div>
+  </div><!-- end panel-keepa -->
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Background presets ────────────────────────
-const BG_PRESETS = [
-  { id: "106018623298955",   label: "Solid Purple",        bg: "#6B46C1", text: "#fff" },
-  { id: "204187940028597",   label: "Solid Red",           bg: "#DC2626", text: "#fff" },
-  { id: "621731364695726",   label: "Solid Red 2",         bg: "#B91C1C", text: "#fff" },
-  { id: "301029513638534",   label: "Solid Teal",          bg: "#0D9488", text: "#fff" },
-  { id: "154977255088164",   label: "Solid Teal 2",        bg: "#0F766E", text: "#fff" },
-  { id: "217761075370932",   label: "Solid Blue",          bg: "#1D4ED8", text: "#fff" },
-  { id: "1365883126823705",  label: "Solid Blue 2",        bg: "#1E40AF", text: "#fff" },
-  { id: "433967226963128",   label: "Solid Purple 2",      bg: "#7C3AED", text: "#fff" },
-  { id: "145893972683590",   label: "Dark Purple",         bg: "#4C1D95", text: "#fff" },
-  { id: "1881421442117417",  label: "Solid Black",         bg: "#111827", text: "#fff" },
-  { id: "219266485227663",   label: "Solid Magenta",       bg: "#C026D3", text: "#fff" },
-  { id: "1289741387813798",  label: "Dark Red",            bg: "#991B1B", text: "#fff" },
-  { id: "1271157196337260",  label: "Solid Red 3",         bg: "#EF4444", text: "#fff" },
-  { id: "1903718606535395",  label: "Solid Red 4",         bg: "#E11D48", text: "#fff" },
-  { id: "901751159967576",   label: "Dark Orange",         bg: "#C2410C", text: "#fff" },
-  { id: "688479024672716",   label: "Teal Green",          bg: "#0F9D58", text: "#fff" },
-  { id: "1941912679424590",  label: "Dark Grey",           bg: "#374151", text: "#fff" },
-  { id: "249307305544279",   label: "Red Blue Gradient",   bg: "linear-gradient(135deg,#DC2626,#1D4ED8)", text: "#fff" },
-  { id: "1777259169190672",  label: "Purple Magenta",      bg: "linear-gradient(135deg,#7C3AED,#C026D3)", text: "#fff" },
-  { id: "303063890126415",   label: "Sunset",              bg: "linear-gradient(135deg,#F59E0B,#EF4444)", text: "#fff" },
-  { id: "446330032368780",   label: "Red Gradient",        bg: "linear-gradient(135deg,#EF4444,#991B1B)", text: "#fff" },
-  { id: "122708641613922",   label: "Dark Gradient",       bg: "linear-gradient(135deg,#374151,#111827)", text: "#fff" },
-  { id: "175493843120364",   label: "Pink Yellow",         bg: "linear-gradient(135deg,#EC4899,#F59E0B)", text: "#fff" },
-  { id: "365653833956649",   label: "Tropical Plants",     bg: "#16A34A", text: "#fff", emoji: "🌿" },
-  { id: "618093735238824",   label: "Brown Illustration",  bg: "#92400E", text: "#fff", emoji: "🍂" },
-  { id: "191761991491375",   label: "3D Hearts",           bg: "#DB2777", text: "#fff", emoji: "❤️" },
-  { id: "2193627793985415",  label: "Heart Eyes",          bg: "#F43F5E", text: "#fff", emoji: "😍" },
-  { id: "200521337465306",   label: "Flame Emojis",        bg: "#EA580C", text: "#fff", emoji: "🔥" },
-  { id: "1821844087883360",  label: "Walking Yellow",      bg: "#CA8A04", text: "#fff", emoji: "🚶" },
-  { id: "248623902401250",   label: "Smiling Emoji",       bg: "#EAB308", text: "#fff", emoji: "😊" },
-  { id: "240401816771706",   label: "Rose Emojis",         bg: "#E11D48", text: "#fff", emoji: "🌹" },
-  { id: "1868855943417360",  label: "Crying Laugh",        bg: "#FBBF24", text: "#fff", emoji: "😂" },
-  { id: "217321755510854",   label: "Pink Hearts",         bg: "#F9A8D4", text: "#9D174D" },
-  { id: "518948401838663",   label: "Heart Pattern Pink",  bg: "#FBCFE8", text: "#9D174D", emoji: "💗" },
-  { id: "148862695775447",   label: "Hearts Purple",       bg: "#A855F7", text: "#fff", emoji: "💜" },
-  { id: "161409924510923",   label: "Rocket Heart",        bg: "#38BDF8", text: "#fff", emoji: "🚀" },
-  { id: "143093446467972",   label: "Blue Clouds",         bg: "#1E3A5F", text: "#fff", emoji: "☁️" },
-  { id: "931584293685988",   label: "Wave Blue",           bg: "#1D4ED8", text: "#fff", emoji: "🌊" },
-  { id: "100114277230063",   label: "Deep Sea Blue",       bg: "#0C4A6E", text: "#fff", emoji: "🌊" },
-  { id: "127541261450947",   label: "Ball Green",          bg: "#15803D", text: "#fff", emoji: "⚽" },
-  { id: "174496469882866",   label: "Lemon Yellow",        bg: "#FDE047", text: "#713F12", emoji: "🍋" },
-  { id: "862667370603267",   label: "Egg Yellow",          bg: "#FEF08A", text: "#713F12", emoji: "🥚" },
-  { id: "228164237768720",   label: "Grey Hearts Black",   bg: "#1F2937", text: "#fff", emoji: "🖤" },
-  { id: "146487026137131",   label: "Rain Black",          bg: "#111827", text: "#fff", emoji: "🌧" },
-  { id: "762009070855346",   label: "Balloon Grey",        bg: "#9CA3AF", text: "#fff", emoji: "🎈" },
-  { id: "558836317844129",   label: "Spiral Purple",       bg: "#5B21B6", text: "#fff", emoji: "🌀" },
-  { id: "172497526576609",   label: "Watermelon Purple",   bg: "#A78BFA", text: "#fff", emoji: "🍉" },
-  { id: "197865920864520",   label: "Donut Purple",        bg: "#C4B5FD", text: "#4C1D95", emoji: "🍩" },
-  { id: "643122496026756",   label: "Pink Illustration",   bg: "#FDF2F8", text: "#9D174D", emoji: "🌸" },
-  { id: "255989551804163",   label: "Eye Pink",            bg: "#FCE7F3", text: "#9D174D", emoji: "👁" },
-  { id: "396343990807392",   label: "Flower Teal",         bg: "#CCFBF1", text: "#134E4A", emoji: "🌺" },
-  { id: "548109108916650",   label: "Unicorn Red",         bg: "#FEE2E2", text: "#991B1B", emoji: "🦄" },
-];
-
-let postType          = 'plain';
-let bgColor           = '#1877f2';
-let textColor         = '#ffffff';
-let selectedPresetId  = BG_PRESETS[0].id;
-let inputMode         = 'builder';
-
-// ── Nav ───────────────────────────────────────
-function showPanel(name) {
-  if (name === 'extractor') loadStaging();
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  document.getElementById('nav-' + name).classList.add('active');
-  if (name === 'queue') loadJobs();
-}
+let deals = [];
 
 // ── Toast ─────────────────────────────────────
 function toast(msg, type = 'ok') {
@@ -517,639 +245,518 @@ function toast(msg, type = 'ok') {
   setTimeout(() => el.className = 'toast', 3500);
 }
 
-// ── Build preset grid ─────────────────────────
-function buildPresetGrid() {
-  const grid = document.getElementById('bg-preset-grid');
-  grid.innerHTML = BG_PRESETS.map(p => `
-    <div class="bg-preset-item ${p.id === selectedPresetId ? 'active' : ''}"
-         id="preset-${p.id}"
-         onclick="selectPreset('${p.id}')"
-         title="${p.label}">
-      <div class="bg-preset-inner" style="background:${p.bg}">
-        ${p.emoji ? `<span style="font-size:1.4rem">${p.emoji}</span>` : `<span style="font-size:0.6rem;font-weight:700">${p.label}</span>`}
-      </div>
-    </div>`).join('');
-}
-
-function selectPreset(id) {
-  selectedPresetId = id;
-  document.querySelectorAll('.bg-preset-item').forEach(el => el.classList.remove('active'));
-  const el = document.getElementById('preset-' + id);
-  if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }); }
-}
-
-// ── Post type ─────────────────────────────────
-function setPostType(type) {
-  postType = type;
-  ['plain','styled','background','image'].forEach(t => {
-    document.getElementById('type-' + t).classList.toggle('active', t === type);
-  });
-  document.getElementById('background-options').style.display = type === 'background' ? 'block' : 'none';
-  document.getElementById('image-options').style.display      = type === 'image'      ? 'block' : 'none';
-  const counter = document.getElementById('char-counter');
-  counter.style.display = type === 'background' ? 'block' : 'none';
-  onCaptionInput();
-}
-
-function onCaptionInput() {
-  updatePreview();
-  if (postType === 'background') {
-    const len     = document.getElementById('caption').value.length;
-    const counter = document.getElementById('char-counter');
-    counter.textContent = `${len}/130 characters`;
-    counter.className   = 'char-counter' + (len > 130 ? ' over' : len > 100 ? ' warn' : '');
-  }
-}
-
-// ── Image preview ─────────────────────────────
-function updatePreview() {
-  const prev = document.getElementById('img-preview');
-  if (!prev) return;
-  const cap = document.getElementById('caption').value || 'Your post text';
-  prev.style.background = bgColor;
-  prev.style.color      = textColor;
-  prev.textContent      = cap.slice(0, 120);
-}
-
-function setBgColor(color, el) {
-  bgColor = color;
-  document.getElementById('bg-color-picker').value = color;
-  document.querySelectorAll('#bg-presets .color-preset').forEach(e => e.classList.remove('active'));
-  if (el) el.classList.add('active');
-  updatePreview();
-}
-
-function setTextColor(color, el) {
-  textColor = color;
-  document.getElementById('text-color-picker').value = color;
-  document.querySelectorAll('[onclick^="setTextColor"]').forEach(e => e.classList.remove('active'));
-  if (el) el.classList.add('active');
-  updatePreview();
-}
-
-// ── Input mode ────────────────────────────────
-function setMode(mode) {
-  inputMode = mode;
-  document.getElementById('builder-mode').style.display = mode === 'builder' ? 'block' : 'none';
-  document.getElementById('paste-mode').style.display   = mode === 'paste'   ? 'block' : 'none';
-  document.getElementById('mode-builder').classList.toggle('active', mode === 'builder');
-  document.getElementById('mode-paste').classList.toggle('active',   mode === 'paste');
-  updateTiming();
-}
-
-// ── Builder comments ──────────────────────────
-function parseCommentText(text) {
-  // Parse structured text into caption + discount fields
-  const lines = (text || '').split('\n');
-  const discounts = { main: '', voucher: '', checkout: '', prime: '', extra: '' };
-  const captionLines = [];
-  for (const line of lines) {
-    const l = line.trim();
-    if (/^🔻/.test(l)) discounts.main = l.replace(/^🔻\s*REDUCED PRICE\s*/i,'').replace(/[()]/g,'').trim();
-    else if (/^🎟️\s*Extra/i.test(l)) discounts.extra = l.replace(/^🎟️\s*Extra\s*/i,'').replace(/with voucher/i,'').trim();
-    else if (/^🎟️/.test(l)) discounts.voucher = l.replace(/^🎟️\s*/,'').replace(/with voucher/i,'').trim();
-    else if (/^🛒/.test(l)) discounts.checkout = l.replace(/^🛒\s*/,'').replace(/at checkout/i,'').trim();
-    else if (/^👑/.test(l)) discounts.prime = l.replace(/^👑\s*/,'').replace(/for Prime members/i,'').trim();
-    else if (/^➕/.test(l)) discounts.extra = l.replace(/^➕\s*Extra\s*/i,'').replace(/available!/i,'').trim();
-    else if (/^📉/.test(l)) discounts.priceDrop = l.replace(/^📉\s*/,'').trim();
-    else captionLines.push(line);
-  }
-  return { caption: captionLines.join('\n').trim(), discounts };
-}
-
-function buildCommentText(caption, discounts) {
-  const lines = [caption, ''];
-  if (discounts.main) lines.push('🔻 REDUCED PRICE (' + discounts.main + ')');
-  if (discounts.voucher) lines.push('🎟️ ' + discounts.voucher + ' with voucher');
-  if (discounts.checkout) lines.push('🛒 ' + discounts.checkout + ' at checkout');
-  if (discounts.prime) lines.push('👑 ' + discounts.prime + ' for Prime members');
-  if (discounts.extra) lines.push('➕ Extra ' + discounts.extra + ' available!');
-  if (discounts.priceDrop) lines.push('📉 ' + discounts.priceDrop);
-  return lines.filter((l,i) => !(i===1 && lines.slice(2).every(x=>!x))).join('\n').trim();
-}
-
-function addComment(text = '', link = '', promo = '', imageUrl = '') {
-  const list = document.getElementById('comments-list');
-  const id   = 'ce-' + Date.now() + Math.random().toString(36).slice(2,6);
-  const num  = list.children.length + 1;
-  const div  = document.createElement('div');
-  div.className = 'comment-entry';
-  div.id = id;
-  const { caption, discounts } = parseCommentText(text);
-  const esc = s => (s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const val = s => (s||'').replace(/"/g,'&quot;');
-  div.innerHTML = `
-    <div class="comment-entry-num">Comment #${num}</div>
-    ${imageUrl ? `<img class="ce-thumb" src="${val(imageUrl)}" onerror="this.style.display='none'" loading="lazy"/>` : ''}
-    <textarea class="ce-text" placeholder="Caption text…" rows="4" oninput="updateTiming()">${esc(caption)}</textarea>
-    <div class="discount-fields">
-      <div class="discount-field"><label>🔻</label><input class="ce-disc-main" type="text" placeholder="e.g. 50% OFF" value="${val(discounts.main)}"/></div>
-      <div class="discount-field"><label>🎟️</label><input class="ce-disc-voucher" type="text" placeholder="voucher discount" value="${val(discounts.voucher)}"/></div>
-      <div class="discount-field"><label>🛒</label><input class="ce-disc-checkout" type="text" placeholder="checkout discount" value="${val(discounts.checkout)}"/></div>
-      <div class="discount-field"><label>👑</label><input class="ce-disc-prime" type="text" placeholder="prime discount" value="${val(discounts.prime)}"/></div>
-      <div class="discount-field" style="grid-column:span 2"><label>➕</label><input class="ce-disc-extra" type="text" placeholder="extra discount" value="${val(discounts.extra)}"/></div>
-      <div class="discount-field" style="grid-column:span 2"><label>📉</label><input class="ce-disc-pricedrop" type="text" placeholder="e.g. Price Drop — now under £21" value="${val(discounts.priceDrop||'')}"/></div>
-    </div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <input type="text" class="link-input ce-link" placeholder="https://your-link.com" value="${val(link)}" style="flex:1;margin-bottom:0"/>
-      ${link ? `<a href="${val(link)}" target="_blank" style="font-size:0.75rem;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;color:#2563eb;text-decoration:none;white-space:nowrap">↗ Open</a>` : ''}
-    </div>
-    <div style="margin-top:4px">
-      <button class="promo-toggle" onclick="togglePromo('${id}')">+ Add promo code</button>
-    </div>
-    <div class="promo-input ${promo ? 'open' : ''}" id="promo-${id}">
-      <input type="text" placeholder="e.g. SAVE20" value="${val(promo)}"/>
-    </div>
-    <button class="comment-entry-remove" onclick="removeComment('${id}')">✕</button>`;
-  list.appendChild(div);
-  updateCommentCount();
-  updateTiming();
-}
-
-function togglePromo(id) { document.getElementById('promo-' + id).classList.toggle('open'); }
-
-function removeComment(id) {
-  document.getElementById(id).remove();
-  updateCommentCount();
-  document.querySelectorAll('.comment-entry-num').forEach((el, i) => { el.textContent = `Comment #${i+1}`; });
-  updateTiming();
-}
-
-function updateCommentCount() {
-  const n = document.getElementById('comments-list').children.length;
-  document.getElementById('comment-count').textContent = n + ' comment' + (n !== 1 ? 's' : '');
-}
-
-function getBuilderComments() {
-  const result = [];
-  document.getElementById('comments-list').querySelectorAll('.comment-entry').forEach(entry => {
-    const caption  = entry.querySelector('.ce-text').value.trim();
-    const link     = entry.querySelector('.ce-link').value.trim();
-    const promo    = entry.querySelector('.promo-input input').value.trim();
-    const discounts = {
-      main:      entry.querySelector('.ce-disc-main')?.value.trim()      || '',
-      voucher:   entry.querySelector('.ce-disc-voucher')?.value.trim()   || '',
-      checkout:  entry.querySelector('.ce-disc-checkout')?.value.trim()  || '',
-      prime:     entry.querySelector('.ce-disc-prime')?.value.trim()     || '',
-      extra:     entry.querySelector('.ce-disc-extra')?.value.trim()     || '',
-      priceDrop: entry.querySelector('.ce-disc-pricedrop')?.value.trim() || '',
-    };
-    const text = buildCommentText(caption, discounts);
-    if (link) result.push({ text, link, promoCode: promo });
-  });
-  return result;
-}
-
-// ── Paste mode ────────────────────────────────
-function parsePaste(raw) {
-  let blocks = [];
-  const trimmed = raw.trim();
-
-  if (/^["\u201C]/.test(trimmed)) {
-    // Google Sheets CSV format:
-    // - Cells are wrapped in double quotes: "cell content"
-    // - Literal quotes inside cells are escaped as double-double-quotes: ""like this""
-    // Strategy:
-    // 1. First replace escaped inner quotes "" with a placeholder
-    // 2. Split on real cell boundary (closing quote + newline + opening quote)
-    // 3. Restore placeholders back to single quotes
-
-    const PLACEHOLDER = '\u0001QUOT\u0001';
-    const normalized = trimmed.replace(/""/g, PLACEHOLDER);
-
-    blocks = normalized
-      .split(/["\u201D]\s*\n\s*["\u201C"]/)
-      .map(b => b
-        .replace(/^["\u201C\s]+|["\u201D\s]+$/g, '')
-        .replace(new RegExp(PLACEHOLDER, 'g'), '"')
-        .trim()
-      )
-      .filter(Boolean);
-  } else {
-    blocks = trimmed
-      .split(/\n[\t ]*[＿_]{4,}[\t ]*\n[\t ]*\n|\n\s*\n/)
-      .map(b => b.trim())
-      .filter(Boolean);
-  }
-
-  return blocks.map(block => {
-    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-    const linkIdx = lines.findLastIndex(l => l.startsWith('http'));
-    if (linkIdx === -1) return null;
-
-    const link = lines[linkIdx];
-    const promoLine = lines.find(l => l.toUpperCase().startsWith('PROMO:'));
-    const promoCode = promoLine ? promoLine.replace(/^PROMO:\s*/i, '').trim() : '';
-    const isSep = l => /^[＿_]{4,}$/.test(l.trim());
-
-    const aboveLink = lines.slice(0, linkIdx)
-      .filter(l => l !== promoLine && !isSep(l)).join('\n').trim();
-    const belowLink = lines.slice(linkIdx + 1)
-      .filter(l => l !== promoLine && !isSep(l)).join('\n').trim();
-    const text = [aboveLink, belowLink].filter(Boolean).join('\n');
-
-    return { text, link, promoCode };
-  }).filter(Boolean);
-}
-
-function updatePasteCount() {
-  const n = parsePaste(document.getElementById('paste-input').value).length;
-  document.getElementById('paste-count').textContent = n + ' comment' + (n !== 1 ? 's' : '') + ' detected';
-  updateTiming();
-}
-
-function getAllComments() {
-  const builderComments = getBuilderComments();
-  const pasteComments   = parsePaste(document.getElementById('paste-input').value);
-  // Always merge both — builder comments first, then pasted ones
-  return [...builderComments, ...pasteComments];
-}
-
-// ── Timing estimate ───────────────────────────
-function updateTiming() {
-  const comments = getAllComments();
-  const n = comments.length;
-  if (n === 0) { document.getElementById('timing-info').textContent = 'Estimated posting time: —'; return; }
-  const promos   = comments.filter(c => c.promoCode).length;
-  const breaks   = Math.floor(n / 10);
-  const totalSec = (n * 30) + (promos * 14) + (breaks * 75);
-  const mins     = Math.ceil(totalSec / 60);
-  document.getElementById('timing-info').textContent =
-    `⏱ Estimated ~${mins} min for ${n} comment${n !== 1 ? 's' : ''}${promos ? ` + ${promos} promo repl${promos !== 1 ? 'ies' : 'y'}` : ''} (anti-block delays included)`;
-}
-
-// ── Schedule ──────────────────────────────────
-async function schedulePost() {
-  const caption      = document.getElementById('caption').value.trim();
-  const comments     = getAllComments();
-  const time         = document.getElementById('sched-time').value;
-  const repeat       = document.getElementById('repeat').value;
-  const firstComment = document.getElementById('first-comment').value.trim();
-  const lastComment  = document.getElementById('last-comment').value.trim();
-
-  if (!caption)         { toast('Please write a caption', 'err'); return; }
-  if (!comments.length) { toast('Please add at least one comment with a link', 'err'); return; }
-  if (!time)            { toast('Please pick a time', 'err'); return; }
-  if (postType === 'background' && caption.length > 130) {
-    toast('Caption too long — FB background posts max 130 characters', 'err'); return;
-  }
-
-  const btn = document.getElementById('schedule-btn');
-  btn.disabled = true; btn.textContent = editingJobId ? 'Saving…' : 'Scheduling…';
-
-  const url    = editingJobId ? '/api/jobs/' + editingJobId : '/api/jobs';
-  const method = editingJobId ? 'PUT' : 'POST';
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      caption, comments, time, repeat, postType,
-      bgColor, textColor,
-      backgroundPresetId: selectedPresetId,
-      firstComment, lastComment, timezone: document.getElementById('sched-tz').value
-    })
-  });
-  const data = await res.json();
-
-  btn.disabled = false; btn.textContent = editingJobId ? 'Save changes' : 'Schedule Post';
-
-  if (data.success) {
-    toast(editingJobId ? 'Post updated!' : 'Post scheduled for ' + time + '!');
-    editingJobId = null;
-    document.getElementById('schedule-btn').textContent = 'Schedule Post';
-    document.getElementById('edit-banner').style.display = 'none';
-    document.getElementById('caption').value       = '';
-    document.getElementById('comments-list').innerHTML = '';
-    document.getElementById('paste-input').value   = '';
-    document.getElementById('first-comment').value = `Hey everyone! I'm getting all the links ready and will be dropping some cracking deals in just a few minutes! If you see this post, PLEASE GIVE IT A LIKE. 👍
-Why? Two reasons:
-
-1️⃣ FIRST: It helps the page get more visibility (which means I can snag better discounts from sellers = cheaper prices for you!). 📉
-
-2️⃣ SECOND: Every 'Like' gives you an entry into our Giveaway! I'll be picking one lucky follower to win a £10 Amazon voucher. 🎁🎟️
-That's all! Stick around and enjoy the deals!`;
-    document.getElementById('last-comment').value  = `🟩🟩🟩🟩🟩🟩
-THE DEALS ARE READY AND POSTED.
-You should see around 35-40 deals in the comments; Facebook will unfortunately hide most of them from you, so make sure to switch from "Most Relevant" to "All comments" to see them all.
-🟩🟩🟩🟩🟩🟩`;
-    updateCommentCount(); updatePasteCount(); updateTiming();
-    showPanel('queue');
-  } else {
-    toast('Error: ' + (data.error || 'Unknown'), 'err');
-  }
-}
-
-// ── Queue ─────────────────────────────────────
-async function loadJobs() {
-  const res  = await fetch('/api/jobs');
-  const jobs = await res.json();
-  document.getElementById('queue-count').textContent = jobs.length;
-  const list = document.getElementById('job-list');
-  if (!jobs.length) {
-    list.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><p>No posts scheduled yet.</p></div>`;
-    return;
-  }
-  const typeLabel   = { plain:'Plain text', styled:'Bold styled', background:'FB Background', image:'Custom image' };
-  const repeatLabel = { once:'one time', daily:'daily', weekly:'weekly', monthly:'monthly' };
-  const statusLabel = { scheduled:'Scheduled', running:'Posting…', done:'Done', done_with_errors:'Done (errors)', failed:'Failed' };
-
-  list.innerHTML = jobs.slice().reverse().map(job => {
-    const logs = (job.logs || []).map(l => `<div class="log-${l.type || 'info'}">${l.ts.slice(11,19)} ${l.msg}</div>`).join('');
-    const dot  = job.status === 'running' ? '<span class="running-dot"></span>' : '';
-    return `
-      <div class="job-card">
-        <div class="job-card-header">
-          <div>
-            <div class="job-caption">${job.caption.slice(0,80)}${job.caption.length > 80 ? '…' : ''}</div>
-            <div class="job-meta">
-              <span>🕐 ${job.time}</span>
-              <span>🔁 ${repeatLabel[job.repeat] || job.repeat}</span>
-              <span>💬 ${job.commentCount} comments</span>
-              <span>🎨 ${typeLabel[job.postType] || job.postType}</span>
-              ${job.postUrl ? `<a href="${job.postUrl}" target="_blank" style="color:var(--accent);text-decoration:none">View post →</a>` : ''}
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="badge badge-${job.status}">${dot}${statusLabel[job.status] || job.status}</span>
-            <div class="job-actions">
-              ${job.status === 'scheduled' ? `<button class="btn-run btn" onclick="runNow('${job.id}')">Post now</button>` : ''}
-              ${job.status === 'scheduled' ? `<button class="btn-edit btn" onclick="editJob('${job.id}')">Edit</button>` : ''}
-              ${(job.status === 'failed' || job.status === 'done_with_errors') && job.postUrl ? `<button class="btn-edit btn" onclick="resumeJob('${job.id}')" style="background:var(--warn-dim);border-color:rgba(245,158,11,0.3);color:var(--warn)">Resume comments</button>` : ''}
-              <button class="btn-danger btn" onclick="deleteJob('${job.id}')">Delete</button>
-            </div>
-          </div>
-        </div>
-        ${logs ? `<button class="log-toggle" onclick="toggleLog('log-${job.id}',this)">Show log</button><div class="log-box" id="log-${job.id}">${logs}</div>` : ''}
-      </div>`;
-  }).join('');
-}
-
-function toggleLog(id, btn) {
-  const el = document.getElementById(id);
-  el.classList.toggle('open');
-  btn.textContent = el.classList.contains('open') ? 'Hide log' : 'Show log';
-}
-
-async function runNow(id) {
-  await fetch(`/api/jobs/${id}/run-now`, { method: 'POST' });
-  toast('Posting now — check log for progress');
-  setTimeout(loadJobs, 2000);
-}
-
-async function resumeJob(id) {
-  if (!confirm('Resume posting remaining comments on this post?')) return;
-  await fetch(`/api/jobs/${id}/resume`, { method: 'POST' });
-  toast('Resuming comments — check log for progress');
-  setTimeout(loadJobs, 2000);
-}
-
-async function deleteJob(id) {
-  if (!confirm('Delete this scheduled post?')) return;
-  await fetch(`/api/jobs/${id}`, { method: 'DELETE' });
-  toast('Post deleted');
-  loadJobs();
-}
-
-
-// ── Edit job ──────────────────────────────────
-let editingJobId = null;
-
-async function editJob(id) {
-  const res  = await fetch('/api/jobs/' + id);
-  const job  = await res.json();
-  editingJobId = id;
-
-  // Switch to New Post panel
-  showPanel('schedule');
-
-  // Fill caption
-  document.getElementById('caption').value = job.caption;
-
-  // Set post type
-  setPostType(job.postType || 'plain');
-  if (job.postType === 'background') selectPreset(job.backgroundPresetId);
-  if (job.postType === 'image') {
-    setBgColor(job.bgColor || '#1877f2', null);
-    setTextColor(job.textColor || '#ffffff', null);
-    updatePreview();
-  }
-
-  // Fill bookends
-  document.getElementById('first-comment').value = job.firstComment || '';
-  document.getElementById('last-comment').value  = job.lastComment  || '';
-
-  // Fill comments
-  document.getElementById('comments-list').innerHTML = '';
-  setMode('builder');
-  (job.comments || []).forEach(c => addComment(c.text, c.link, c.promoCode || '', c.imageUrl || ''));
-  updateCommentCount();
-
-  // Set schedule
-  document.getElementById('sched-time').value = job.time;
-  document.getElementById('repeat').value     = job.repeat || 'once';
-
-  // Update button
-  const btn = document.getElementById('schedule-btn');
-  btn.textContent = 'Save changes';
-  document.getElementById('edit-banner').style.display = 'block';
-  updateTiming();
-  toast('Editing post — make your changes and click Save');
-}
-
-function cancelEdit() {
-  editingJobId = null;
-  document.getElementById('schedule-btn').textContent = 'Schedule Post';
-  document.getElementById('edit-banner').style.display = 'none';
-}
-
-
-
-// ── Extractor Staging Queue ───────────────────
-let stagingDeals = [];
-
-async function loadStaging() {
-  const res  = await fetch('/api/staging');
-  stagingDeals = await res.json();
-  renderStaging();
-  document.getElementById('extractor-count').textContent = stagingDeals.length;
-}
-
-function renderStaging() {
-  const empty    = document.getElementById('extractor-empty');
-  const controls = document.getElementById('extractor-controls');
-  const list     = document.getElementById('staging-list');
-
-  if (!stagingDeals.length) {
-    empty.style.display = 'block';
-    controls.style.display = 'none';
-    return;
-  }
-  empty.style.display = 'none';
-  controls.style.display = 'block';
-
-  list.innerHTML = stagingDeals.map(d => `
-    <div class="staging-card" id="sc-${d.id}">
-      <input type="checkbox" ${d.selected ? 'checked' : ''} onchange="toggleStaged('${d.id}', this.checked)" style="margin-top:4px;width:16px;height:16px;cursor:pointer;flex-shrink:0"/>
-      ${d.imageUrl
-        ? `<img class="staging-thumb" src="${d.imageUrl}" loading="lazy" onerror="this.style.display='none'"/>`
-        : `<div class="staging-thumb-placeholder">🛍️</div>`}
-      <div style="flex:1;min-width:0">
-        <div style="font-size:0.82rem;font-weight:500;color:var(--text);margin-bottom:4px">${d.title || 'Deal'}</div>
-        <div class="staging-text">${d.text}</div>
-        <a class="staging-link" href="${d.link}" target="_blank">${d.link}</a>
-      </div>
-      <button class="btn-danger btn" style="padding:0.3rem 0.6rem;font-size:0.72rem;flex-shrink:0" onclick="removeStagedDeal('${d.id}')">✕</button>
-    </div>
-  `).join('');
-
-  updateStagedCount();
-}
-
-function toggleStaged(id, checked) {
-  const deal = stagingDeals.find(d => d.id === id);
-  if (deal) deal.selected = checked;
-  updateStagedCount();
-}
-
-function toggleAllStaged(checked) {
-  stagingDeals.forEach(d => d.selected = checked);
-  renderStaging();
-}
-
-function updateStagedCount() {
-  const count = stagingDeals.filter(d => d.selected).length;
-  document.getElementById('extractor-selected-count').textContent = count + ' selected';
-}
-
-async function removeStagedDeal(id) {
-  await fetch(`/api/staging/${id}`, { method: 'DELETE' });
-  stagingDeals = stagingDeals.filter(d => d.id !== id);
-  renderStaging();
-  document.getElementById('extractor-count').textContent = stagingDeals.length;
-}
-
-async function clearAllStaged() {
-  if (!confirm('Clear all staged deals?')) return;
-  await fetch('/api/staging', { method: 'DELETE' });
-  stagingDeals = [];
-  renderStaging();
-  document.getElementById('extractor-count').textContent = '0';
-}
-
-async function scheduleStaged() {
-  const time     = document.getElementById('staging-time').value;
-  const timezone = document.getElementById('staging-tz').value;
-  const repeat   = document.getElementById('staging-repeat').value;
-
-  if (!time) { toast('Please pick a time', 'err'); return; }
-
-  const selectedIds = stagingDeals.filter(d => d.selected).map(d => d.id);
-  if (!selectedIds.length) { toast('Select at least one deal', 'err'); return; }
-
-  const res  = await fetch('/api/staging/schedule', {
+// ── Parse ─────────────────────────────────────
+async function parseDeals() {
+  const text = document.getElementById('raw-input').value.trim();
+  if (!text) { toast('Paste some text first', 'err'); return; }
+
+  const btn = document.getElementById('parse-btn');
+  btn.disabled = true; btn.textContent = 'Parsing...';
+
+  const res  = await fetch('/api/parse', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ selectedIds, time, timezone, repeat,
-      firstComment: document.getElementById('first-comment').value,
-      lastComment: document.getElementById('last-comment').value,
-    })
+    body: JSON.stringify({ text })
   });
   const data = await res.json();
 
-  if (data.success) {
-    toast(`${selectedIds.length} deals scheduled for ${time}!`);
-    loadStaging();
-    showPanel('queue');
-    loadJobs();
-  } else {
-    toast('Error: ' + (data.error || 'Unknown'), 'err');
+  btn.disabled = false; btn.textContent = 'Extract Deals →';
+
+  if (data.error) { toast(data.error, 'err'); return; }
+  if (!data.deals.length) { toast('No deals found — check the format', 'err'); return; }
+
+  deals = data.deals;
+  renderDeals();
+  updateStats();
+  document.getElementById('progress-section').style.display = 'block';
+  toast(`${data.count} deals extracted!`);
+}
+
+// ── Render ────────────────────────────────────
+function renderDeals() {
+  const list = document.getElementById('deal-list');
+  if (!deals.length) { list.innerHTML = '<div class="empty">No deals yet.</div>'; return; }
+
+  list.innerHTML = deals.map((d, i) => `
+    <div class="deal-card ${d.status}" id="deal-card-${i}">
+      <div class="deal-header">
+        ${d.status === 'done' ? `<input type="checkbox" class="deal-checkbox" id="cb-${i}" ${d.selected ? 'checked' : ''} onchange="toggleDeal(${i}, this.checked)"/>` : `<div class="deal-num">${d.id}</div>`}
+        ${d.images && d.images.length ? `<img class="deal-thumb" src="${d.images[0]}" onerror="this.style.display='none'" loading="lazy"/>` : ''}
+        <div style="flex:1">
+          <div class="deal-title">${d.keepaTitle || d.productTitle || d.description || 'Pending...'}</div>
+          <div class="deal-meta">
+            ${d.asin ? `<span>ASIN: ${d.asin}</span>` : ''}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+            ${d.discount !== null && d.discount !== undefined ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#ff6b35;background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].discount=this.textContent.trim();updateOutput(${i})" spellcheck="false">🔻 ${d.discount}</span>` : ''}
+            ${d.discountWithVoucher ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#f59e0b;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].discountWithVoucher=this.textContent.replace('🎟️','').replace('with voucher','').trim();updateOutput(${i})" spellcheck="false">🎟️ ${d.discountWithVoucher} with voucher</span>` : ''}
+            ${d.extraDiscount ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#a78bfa;background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].extraDiscount=this.textContent.replace('➕ Extra','').replace('available!','').trim();updateOutput(${i})" spellcheck="false">➕ Extra ${d.extraDiscount}</span>` : ''}
+            ${d.extraDiscountWithVoucher ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#f59e0b;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].extraDiscountWithVoucher=this.textContent.replace('🎟️ Extra','').replace('with voucher','').trim();updateOutput(${i})" spellcheck="false">🎟️ Extra ${d.extraDiscountWithVoucher} with voucher</span>` : ''}
+            ${d.checkoutDiscount ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#065f46;background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.4);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].checkoutDiscount=this.textContent.replace('🛒','').replace('at checkout','').trim();updateOutput(${i})" spellcheck="false">🛒 ${d.checkoutDiscount} at checkout</span>` : ''}
+            ${d.primeDiscount ? `<span contenteditable="true" style="font-size:0.82rem;font-weight:700;color:#818cf8;background:rgba(129,140,248,0.12);border:1px solid rgba(129,140,248,0.3);border-radius:6px;padding:3px 10px;cursor:text;outline:none;min-width:60px" onblur="deals[${i}].primeDiscount=this.textContent.replace('👑','').replace('for Prime Members','').trim();updateOutput(${i})" spellcheck="false">👑 ${d.primeDiscount} for Prime Members</span>` : ''}
+            ${d.isPriceDrop ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:700;color:#60a5fa;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);border-radius:6px;padding:3px 10px">📉 Price Drop from reg. <span contenteditable="true" style="min-width:40px;outline:none;border-bottom:1px dashed rgba(96,165,250,0.5);padding:0 2px" onblur="deals[${i}].priceDropFrom=this.textContent.trim()" placeholder="£??" spellcheck="false">${d.primeDropFrom||'£??'}</span></span>` : ''}
+          </div>
+          ${d.category ? `<div style="display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:0.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px;color:var(--text2);font-family:var(--mono)">📂 ${d.category}</span>
+            <span style="font-size:0.72rem;background:var(--success-dim);border:1px solid rgba(35,197,94,0.25);border-radius:100px;padding:2px 8px;color:#14532d;font-family:var(--mono);font-weight:600">💰 ${d.commissionRate}% commission</span>
+            ${d.rating ? `<span style="font-size:0.72rem;border-radius:100px;padding:2px 8px;font-family:var(--mono);font-weight:600;${parseFloat(d.rating)>=3.9?'background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.3);color:#14532d':'background:rgba(185,28,28,0.1);border:1px solid rgba(185,28,28,0.3);color:#7f1d1d'}">⭐ ${d.rating}</span>` : ''}
+            ${d.lowestPrice ? `<span style="font-size:0.72rem;background:rgba(35,197,94,0.12);border:1px solid rgba(35,197,94,0.3);border-radius:100px;padding:2px 8px;color:#14532d;font-family:var(--mono);font-weight:600">lowest £${d.lowestPrice}</span>` : ''}
+            ${d.avgPrice ? `<span style="font-size:0.72rem;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:100px;padding:2px 8px;color:#4b5563;font-family:var(--mono)">avg £${d.avgPrice}</span>` : ''}
+            ${(() => {
+              if (!d.currentPrice) return '';
+              let price = parseFloat(d.currentPrice);
+              const extractPct = str => { const m = str && str.match(/(\d+(?:\.\d+)?)%/); return m ? parseFloat(m[1]) : 0; };
+              const mainPct = extractPct(d.discount || d.discountWithVoucher);
+              const extraPct = extractPct(d.extraDiscount || d.extraDiscountWithVoucher);
+              const checkoutPct = extractPct(d.checkoutDiscount);
+              const primePct = extractPct(d.primeDiscount);
+              if (mainPct) price = price * (1 - mainPct / 100);
+              if (extraPct) price = price * (1 - extraPct / 100);
+              if (checkoutPct) price = price * (1 - checkoutPct / 100);
+              if (primePct) price = price * (1 - primePct / 100);
+              const finalPrice = price.toFixed(2);
+              const hasDiscount = mainPct || extraPct || checkoutPct || primePct;
+              return `<span style="font-size:0.72rem;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:100px;padding:2px 8px;color:#111827;font-family:var(--mono);font-weight:700">${hasDiscount ? '<s style="color:#9ca3af;font-weight:400">£' + d.currentPrice + '</s> ' : ''}£${finalPrice}</span>`;
+            })()}
+          </div>` : ''}
+          ${d.shortLink ? `<a class="deal-link" href="${d.shortLink}" target="_blank">${d.shortLink}</a>` : ''}
+          ${d.status === 'error' ? `<div style="font-size:0.72rem;color:var(--error);margin-top:4px">✗ ${d.error}</div>` : ''}
+        </div>
+        <div class="deal-actions">
+          <span class="badge badge-${d.status} ${d.status==='processing'?'pulse':''}">${
+            d.status==='pending' ? 'Pending' :
+            d.status==='processing' ? 'Processing...' :
+            d.status==='done' ? 'Done' : 'Error'
+          }</span>
+          ${d.status==='pending' || d.status==='error' ? `<button class="btn-sm btn" onclick="processSingle(${i})">Process</button>` : ''}
+          <button class="btn-danger btn" onclick="removeDeal(${i})">✕</button>
+        </div>
+      </div>
+      ${d.status === 'done' && d.generatedCaption ? `
+        <div style="font-size:0.72rem;color:var(--text3);font-family:var(--mono);margin-bottom:4px">✏️ Caption (click to edit)</div>
+        <div class="caption-editor" contenteditable="true" id="caption-${i}" onblur="saveCaption(${i}, this.textContent)">${d.generatedCaption}</div>
+      ` : ''}
+    </div>`
+  ).join('');
+
+  const hasDone = deals.some(d => d.status === 'done');
+  document.getElementById('send-section').style.display = hasDone ? 'block' : 'none';
+  document.getElementById('select-all-row').style.display = hasDone ? 'flex' : 'none';
+  updateSelectedCount();
+}
+
+function updateStats() {
+  const total   = deals.length;
+  const done    = deals.filter(d => d.status === 'done').length;
+  const pending = deals.filter(d => d.status === 'processing' || d.status === 'pending').length;
+  const errors  = deals.filter(d => d.status === 'error').length;
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-done').textContent    = done;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-error').textContent   = errors;
+  document.getElementById('progress-fill').style.width = total ? Math.round((done / total) * 100) + '%' : '0%';
+  document.getElementById('retry-btn').style.display = errors > 0 ? 'inline-flex' : 'none';
+}
+
+
+function toggleDeal(idx, checked) {
+  deals[idx].selected = checked;
+  updateSelectedCount();
+}
+
+function toggleSelectAll(checked) {
+  deals.forEach((d, i) => {
+    if (d.status === 'done') {
+      d.selected = checked;
+      const cb = document.getElementById('cb-' + i);
+      if (cb) cb.checked = checked;
+    }
+  });
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const count = deals.filter(d => d.selected).length;
+  const el = document.getElementById('selected-count');
+  if (el) el.textContent = count + ' selected';
+}
+
+function saveCaption(idx, text) {
+  deals[idx].generatedCaption = text.trim();
+}
+
+function updateOutput(idx) {
+  // Discount fields are updated inline via onblur — nothing extra needed
+}
+
+function removeDeal(idx) {
+  deals.splice(idx, 1);
+  deals.forEach((d, i) => d.id = i + 1);
+  renderDeals();
+  updateStats();
+}
+
+// ── Process ───────────────────────────────────
+async function processSingle(idx) {
+  deals[idx].status = 'processing';
+  renderDeals(); updateStats();
+
+  const res  = await fetch('/api/enrich', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deal: deals[idx] })
+  });
+  const enriched = await res.json();
+  deals[idx] = { ...deals[idx], ...enriched, selected: enriched.status === 'done' };
+  renderDeals(); updateStats();
+}
+
+async function processAll() {
+  const pending = deals.map((d, i) => ({ d, i })).filter(({ d }) => d.status === 'pending' || d.status === 'error');
+  if (!pending.length) { toast('No pending deals to process', 'err'); return; }
+
+  const btn = document.getElementById('process-btn');
+  btn.disabled = true;
+
+  const RATE_LIMIT = 18;
+  for (let i = 0; i < pending.length; i++) {
+    const idx = pending[i].i;
+
+    if (i > 0 && i % RATE_LIMIT === 0) {
+      for (let s = 65; s > 0; s--) {
+        btn.textContent = `Resuming in ${s}s (${i}/${pending.length} done)`;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+
+    btn.textContent = `Processing ${i+1}/${pending.length}...`;
+    await processSingle(idx);
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  btn.disabled = false; btn.textContent = 'Process all →';
+  toast('All deals processed!');
+}
+
+async function retryErrors() {
+  const errors = deals.map((d, i) => ({ d, i })).filter(({ d }) => d.status === 'error');
+  for (const { i } of errors) {
+    await processSingle(i);
+    await new Promise(r => setTimeout(r, 500));
   }
 }
 
-// Auto-refresh staging when tab is open
-setInterval(() => {
-  if (document.getElementById('panel-extractor').classList.contains('active')) loadStaging();
-}, 5000);
+// ── Send to Scheduler ─────────────────────────
+async function sendToScheduler() {
+  const selectedDeals = deals.filter(d => d.selected && d.status === 'done');
+  const donDeals = selectedDeals.length > 0 ? selectedDeals : deals.filter(d => d.status === 'done');
+  if (!donDeals.length) { toast('No deals selected — tick the checkboxes first', 'err'); return; }
 
+  const schedulerUrl = document.getElementById('scheduler-url').value.trim();
 
-function updateStagingPasteCount() {
-  const raw = document.getElementById('staging-bulk-paste').value;
-  const n = parsePaste(raw).length;
-  document.getElementById('staging-paste-count').textContent = n + ' deal' + (n !== 1 ? 's' : '') + ' detected';
-}
-
-async function addBulkToStaging() {
-  const raw = document.getElementById('staging-bulk-paste').value.trim();
-  if (!raw) { toast('Nothing to add', 'err'); return; }
-  const parsed = parsePaste(raw);
-  if (!parsed.length) { toast('No deals detected — check format', 'err'); return; }
-
-  const deals = parsed.map(d => ({
-    text: d.text || '',
-    link: d.link || '',
+  // Try direct scheduler API first
+  const comments = donDeals.map(d => ({
+    text: [
+      d.generatedCaption || d.keepaTitle || d.productTitle || '',
+      '',
+      d.discount ? `🔻 REDUCED PRICE (${d.discount.replace(/^🔻\s*/,'').replace(/^REDUCED PRICE\s*/i,'')})` : '',
+      d.discountWithVoucher ? `🎟️ ${d.discountWithVoucher} with voucher` : '',
+      d.checkoutDiscount ? `🛒 ${d.checkoutDiscount} at checkout` : '',
+      d.primeDiscount ? `👑 ${d.primeDiscount} for Prime members` : '',
+      d.extraDiscount ? `➕ Extra ${d.extraDiscount} available!` : '',
+      d.extraDiscountWithVoucher ? `🎟️ Extra ${d.extraDiscountWithVoucher} with voucher` : '',
+      d.isPriceDrop ? `📉 Price Drop from reg. ${d.priceDropFrom || '£??'}` : '',
+    ].filter(Boolean).join('\n'),
+    link: d.shortLink || d.originalLink,
     promoCode: d.promoCode || '',
-    imageUrl: null,
-    title: '',
+    imageUrl: (d.images && d.images.length) ? d.images[0] : null,
+    title: d.keepaTitle || d.productTitle || '',
   }));
 
-  const res  = await fetch('/api/staging', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ deals })
-  });
-  const data = await res.json();
+  console.log('Sending links:', comments.map(c => c.link));
+  console.log('Sending text[0]:', comments[0] && comments[0].text);
 
-  if (data.success) {
-    toast(`${data.added} deals added${data.skipped ? ', ' + data.skipped + ' duplicates skipped' : ''}!`);
-    document.getElementById('staging-bulk-paste').value = '';
-    updateStagingPasteCount();
-    loadStaging();
-  } else {
-    toast('Error: ' + (data.error || 'Unknown'), 'err');
+  try {
+    console.log("Extract tab trying staging:", schedulerUrl);
+    const r = await fetch(`${schedulerUrl}/api/staging`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deals: comments })
+    });
+    const data = await r.json();
+    console.log("Extract staging response:", JSON.stringify(data));
+    if (data.success) { toast(`${comments.length} deals added to Extractor Queue!`); return; }
+  } catch(e) {
+    try {
+      const r = await fetch('/api/send-to-scheduler', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comments, schedulerUrl })
+      });
+      const data = await r.json();
+      if (data.success) { toast(data.message); return; }
+    } catch(e2) {}
+  }
+
+  // Fallback: copy formatted text to clipboard
+  const formatted = donDeals.map(d => {
+    const link = d.shortLink || d.originalLink;
+    const caption = d.generatedCaption || d.keepaTitle || d.productTitle || '';
+    const discountLines = [
+      d.discount ? `🔻 REDUCED PRICE (${d.discount.replace(/^🔻\s*/,'').trim()})` : null,
+      d.discountWithVoucher ? `🎟️ ${d.discountWithVoucher.replace(/^🎟️\s*/,'').trim()} with voucher` : null,
+      d.extraDiscount ? `➕ Extra ${d.extraDiscount.replace(/^➕\s*Extra\s*/i,'').trim()} available!` : null,
+      d.extraDiscountWithVoucher ? `🎟️ Extra ${d.extraDiscountWithVoucher.replace(/^🎟️\s*Extra\s*/i,'').trim()} with voucher` : null,
+      d.checkoutDiscount ? `🛒 ${d.checkoutDiscount.replace(/^🛒\s*/,'').replace(/at checkout/i,'').trim()} at checkout` : null,
+      d.primeDiscount ? `👑 ${d.primeDiscount.replace(/^👑\s*/,'').replace(/for Prime Members/i,'').trim()} for Prime Members` : null,
+      d.isPriceDrop ? `📉 Price Drop from reg. ${d.priceDropFrom||'£??'}` : null,
+      link,
+    ].filter(Boolean);
+    const lines = discountLines.length ? caption + '\n\n' + discountLines.join('\n') : caption + '\n' + link;
+    return `"${lines}"`;
+  }).join('\n');
+
+  navigator.clipboard.writeText(formatted);
+  toast('Copied to clipboard — paste into FB Scheduler');
+}
+
+
+// ── Tab switching ─────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ── Keepa Deals Browser ───────────────────────
+let keepaDeals = [];
+
+async function fetchKeepaDeals() {
+  const minDiscount = parseInt(document.getElementById('kp-min-discount').value) || 0;
+  const maxPrice    = parseInt(document.getElementById('kp-max-price').value) || null;
+  const limit       = parseInt(document.getElementById('kp-limit').value) || 50;
+  const categories  = [...document.querySelectorAll('.cat-grid input:checked')].map(c => parseInt(c.value));
+
+  const btn = document.getElementById('kp-fetch-btn');
+  btn.disabled = true; btn.textContent = 'Fetching...';
+
+  try {
+    const res = await fetch('/api/keepa-deals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ minDiscount, maxPrice, limit, categories, page: 0, dedupeVariants: document.getElementById('kp-dedupe').checked, minRating: document.getElementById('kp-min-rating').value ? parseFloat(document.getElementById('kp-min-rating').value) : null })
+    });
+    const data = await res.json();
+
+    if (data.error) { toast(data.error, 'err'); return; }
+
+    keepaDeals = data.deals;
+    renderKeepaDeals();
+    updateKeepaStats();
+    document.getElementById('kp-stats').style.display = 'flex';
+    document.getElementById('kp-progress-wrap').style.display = 'block';
+    const dedupedMsg = data.deduped > 0 ? ` (${data.deduped} variants removed)` : '';
+    toast(`${data.deals.length} deals fetched${dedupedMsg}!`);
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Fetch Deals →';
   }
 }
 
-// ── Credentials ───────────────────────────────
-async function loadCredentials() {
-  const res  = await fetch('/api/credentials');
-  const data = await res.json();
-  document.getElementById('dot-token').className = 'cred-dot ' + (data.hasToken  ? 'ok' : 'bad');
-  document.getElementById('dot-page').className  = 'cred-dot ' + (data.hasPageId ? 'ok' : 'bad');
+function renderKeepaDeals() {
+  const list = document.getElementById('kp-deal-list');
+  if (!keepaDeals.length) { list.innerHTML = '<div class="empty">No deals found — try adjusting filters.</div>'; return; }
+
+  list.innerHTML = keepaDeals.map((d, i) => `
+    <div class="deal-card ${d.status}" id="kp-card-${i}">
+      <div class="deal-header">
+        ${d.status === 'done' ? `<input type="checkbox" class="deal-checkbox" id="kp-cb-${i}" ${d.selected?'checked':''} onchange="keepaDeals[${i}].selected=this.checked;updateKeepaStats()"/>` : `<div class="deal-num">${i+1}</div>`}
+        ${d.images && d.images.length ? `<img class="deal-thumb" src="${d.images[0]}" onerror="this.style.display='none'" loading="lazy"/>` : ''}
+        <div style="flex:1">
+          <div class="deal-title">${d.title || 'Loading...'}</div>
+          <div class="deal-meta">
+            ${d.discount ? `<span style="color:#ff6b35;font-weight:700">🔻 ${d.discount}% OFF</span>` : ''}
+            ${d.currentPrice ? `<span>£${d.currentPrice}</span>` : ''}
+            ${d.avgPrice ? `<span style="text-decoration:line-through;color:var(--text3)">avg £${d.avgPrice}</span>` : ''}
+            ${d.asin ? `<span>ASIN: ${d.asin}</span>` : ''}
+          </div>
+          ${d.category ? `<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+            <span style="font-size:0.72rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px;color:var(--text2);font-family:var(--mono)">📂 ${d.category}</span>
+            <span style="font-size:0.72rem;background:var(--success-dim);border:1px solid rgba(35,197,94,0.25);border-radius:100px;padding:2px 8px;color:#14532d;font-family:var(--mono);font-weight:600">💰 ${d.commissionRate}% commission</span>
+            ${d.rating ? `<span style="font-size:0.72rem;border-radius:100px;padding:2px 8px;font-family:var(--mono);font-weight:600;${parseFloat(d.rating)>=3.9?'background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.3);color:#14532d':'background:rgba(185,28,28,0.1);border:1px solid rgba(185,28,28,0.3);color:#7f1d1d'}">⭐ ${d.rating}</span>` : ''}
+          </div>` : ''}
+          ${d.shortLink ? `<a class="deal-link" href="${d.shortLink}" target="_blank">${d.shortLink}</a>` : ''}
+          ${d.status === 'error' ? `<div style="font-size:0.72rem;color:var(--error);margin-top:4px">✗ ${d.error}</div>` : ''}
+        </div>
+        <div class="deal-actions">
+          <span class="badge badge-${d.status} ${d.status==='processing'?'pulse':''}">${
+            d.status==='pending'?'Pending':d.status==='processing'?'Processing...':d.status==='done'?'Done':'Error'
+          }</span>
+          ${d.status==='pending'||d.status==='error' ? `<button class="btn-sm btn" onclick="enrichKeepaOne(${i})">Enrich</button>` : ''}
+        </div>
+      </div>
+      ${d.status === 'done' && d.generatedCaption ? `
+        <div style="font-size:0.72rem;color:var(--text3);font-family:var(--mono);margin-bottom:4px">✏️ Caption (click to edit)</div>
+        <div class="caption-editor" contenteditable="true" onblur="keepaDeals[${i}].generatedCaption=this.textContent.trim()">${d.generatedCaption}</div>
+      ` : ''}
+    </div>`
+  ).join('');
+
+  document.getElementById('kp-send-section').style.display = keepaDeals.some(d => d.status === 'done') ? 'block' : 'none';
 }
 
-async function saveCredentials() {
-  const accessToken   = document.getElementById('s-token').value.trim();
-  const pageId        = document.getElementById('s-page-id').value.trim();
-  const telegramToken = document.getElementById('s-tg-token').value.trim();
-  const telegramChatId = document.getElementById('s-tg-chat').value.trim();
-  if (!accessToken || !pageId) { toast('Fill in token and page ID', 'err'); return; }
-  const res  = await fetch('/api/credentials', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accessToken, pageId, telegramToken, telegramChatId, keepaApiKey, anthropicApiKey }) });
-  const data = await res.json();
-  if (data.success) { toast('Credentials saved!'); loadCredentials(); }
-  else toast('Error saving', 'err');
+function updateKeepaStats() {
+  const total = keepaDeals.length;
+  const done  = keepaDeals.filter(d => d.status === 'done').length;
+  document.getElementById('kp-total').textContent = total;
+  document.getElementById('kp-done').textContent  = done;
+  document.getElementById('kp-progress-fill').style.width = total ? Math.round((done/total)*100)+'%' : '0%';
 }
 
-async function testTelegram() {
-  const res  = await fetch('/api/test-telegram', { method: 'POST' });
-  const data = await res.json();
-  if (data.success) toast('Test message sent to Telegram!');
-  else toast('Failed to send', 'err');
+async function enrichKeepaOne(idx) {
+  keepaDeals[idx].status = 'processing';
+  renderKeepaDeals(); updateKeepaStats();
+
+  const res = await fetch('/api/enrich', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deal: keepaDeals[idx] })
+  });
+  const enriched = await res.json();
+  keepaDeals[idx] = { ...keepaDeals[idx], ...enriched, selected: enriched.status === 'done' };
+  renderKeepaDeals(); updateKeepaStats();
 }
 
-// ── Init ──────────────────────────────────────
-buildPresetGrid();
-loadCredentials();
-addComment();
+async function processAllKeepa() {
+  const pending = keepaDeals.map((d,i) => ({d,i})).filter(({d}) => d.status === 'pending' || d.status === 'error');
+  if (!pending.length) { toast('Nothing to enrich', 'err'); return; }
 
-const now = new Date();
-now.setHours(now.getHours() + 1, 0, 0, 0);
-const pad = n => String(n).padStart(2, '0');
-document.getElementById('sched-time').value = `${pad(now.getHours())}:00`;
+  const btn = document.getElementById('kp-process-btn');
+  btn.disabled = true;
 
-setInterval(() => {
-  if (document.getElementById('panel-queue').classList.contains('active')) loadJobs();
+  const RATE_LIMIT = 18; // stay safely under 20/min
+  for (let i = 0; i < pending.length; i++) {
+    const idx = pending[i].i;
 
-}, 5000);
+    // Pause every 18 deals for 65 seconds
+    if (i > 0 && i % RATE_LIMIT === 0) {
+      btn.textContent = `Rate limit pause... (${i}/${pending.length})`;
+      for (let s = 65; s > 0; s--) {
+        btn.textContent = `Resuming in ${s}s (${i}/${pending.length} done)`;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+
+    btn.textContent = `Enriching ${i+1}/${pending.length}...`;
+    await enrichKeepaOne(idx);
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  btn.disabled = false; btn.textContent = 'Enrich all →';
+  toast('All deals enriched!');
+}
+
+async function sendKeepaToScheduler() {
+  const selected = keepaDeals.filter(d => d.selected && d.status === 'done');
+  const toSend   = selected.length ? selected : keepaDeals.filter(d => d.status === 'done');
+  if (!toSend.length) { toast('No enriched deals to send', 'err'); return; }
+
+  const schedulerUrl = document.getElementById('kp-scheduler-url').value.trim();
+
+  const comments = toSend.map(d => ({
+    text: [
+      d.generatedCaption || d.title || '',
+      '',
+      d.discount ? `🔻 REDUCED PRICE (${d.discount}% OFF)` : '',
+    ].filter(l => l !== undefined).join('\n'),
+    link: d.shortLink || d.amazonUrl,
+    promoCode: '',
+    imageUrl: (d.images && d.images.length) ? d.images[0] : null,
+    title: d.title || '',
+  }));
+
+  const tryScheduler = async (url, body) => {
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return r.json();
+  };
+
+  try {
+    // Direct call (local)
+    console.log("Trying direct staging call to:", schedulerUrl);
+    const data = await tryScheduler(`${schedulerUrl}/api/staging`, { deals: comments });
+    console.log("Direct staging response:", JSON.stringify(data));
+    if (data.success) { toast(`${comments.length} deals added to Extractor Queue!`); return; }
+  } catch(e) {
+    console.log("Direct call failed, trying proxy:", e.message);
+    try {
+      const data = await tryScheduler('/api/send-to-scheduler', { comments, schedulerUrl });
+      console.log("Proxy response:", JSON.stringify(data));
+      if (data.success) { toast(data.message); return; }
+    } catch(e2) { console.log("Proxy also failed:", e2.message); }
+  }
+
+  // Clipboard fallback
+  const formatted = toSend.map(d => {
+    const link = d.shortLink || d.amazonUrl;
+    const lines = [
+      d.generatedCaption || d.title || '',
+      '',
+      d.discount ? `🔻 REDUCED PRICE (${d.discount}% OFF)` : '',
+      link,
+    ].filter(Boolean).join('\n');
+    return `"${lines}"`;
+  }).join('\n');
+
+  navigator.clipboard.writeText(formatted);
+  toast('Copied to clipboard!');
+}
+
+
+// ── Load Keepa categories ─────────────────────
+let keepaCategories = [];
+
+async function loadKeepaCategories() {
+  try {
+    const res  = await fetch('/api/keepa-categories');
+    const data = await res.json();
+    keepaCategories = data.categories || [];
+
+    const grid = document.getElementById('kp-cat-grid');
+    const status = document.getElementById('kp-cat-status');
+
+    if (!keepaCategories.length) {
+      grid.innerHTML = '<div style="color:var(--text3);font-size:0.78rem">No categories available</div>';
+      return;
+    }
+
+    status.textContent = `(${keepaCategories.length} available)`;
+    grid.innerHTML = keepaCategories.map(c => `
+      <label class="cat-check">
+        <input type="checkbox" value="${c.id}" ${c.name === 'Fashion' ? 'checked' : ''}/>
+        ${c.name} <span style="color:var(--text3);font-size:0.68rem">(${c.count})</span>
+      </label>`).join('');
+  } catch(e) {
+    document.getElementById('kp-cat-grid').innerHTML = '<div style="color:var(--error);font-size:0.78rem">Failed to load categories</div>';
+  }
+}
+
+// Load when tab is opened
+document.getElementById('tab-keepa').addEventListener('click', () => {
+  if (!keepaCategories.length) loadKeepaCategories();
+});
+
+// ── Live parse preview ─────────────────────────
+document.getElementById('raw-input').addEventListener('input', () => {
+  const text = document.getElementById('raw-input').value;
+  const isUKBargains = text.includes('UK Bargains Finder') || text.includes('amzlink.to');
+  const isOwn = text.trimStart().startsWith('"') && text.includes('linktw.in') && !text.includes('UK Bargains Finder') && !text.includes('Author');
+  let count = 0;
+  if (isOwn) count = (text.match(/^"/gm) || []).length;
+  else if (isUKBargains) count = (text.match(/(?=UK Bargains Finder)/g) || []).length;
+  else count = (text.match(/(?=Author\s*\n)/g) || []).length;
+  const formatLabel = isOwn ? ' (own posts)' : isUKBargains ? ' (UK Bargains)' : ' (Jack\'s Hot Deals)';
+  document.getElementById('parse-preview').textContent = count ? `~${count} deals detected${formatLabel}` : '';
+});
 </script>
 </body>
 </html>
