@@ -461,9 +461,11 @@ async function sendToScheduler() {
       '',
       d.discount ? `🔻 REDUCED PRICE (${d.discount.replace(/^🔻\s*/,'').replace(/^REDUCED PRICE\s*/i,'')})` : '',
       d.discountWithVoucher ? `🎟️ ${d.discountWithVoucher} with voucher` : '',
+      d.checkoutDiscount ? `🛒 ${d.checkoutDiscount} at checkout` : '',
+      d.primeDiscount ? `👑 ${d.primeDiscount} for Prime members` : '',
       d.extraDiscount ? `➕ Extra ${d.extraDiscount} available!` : '',
       d.extraDiscountWithVoucher ? `🎟️ Extra ${d.extraDiscountWithVoucher} with voucher` : '',
-    ].filter(l => l !== undefined).join('\n'),
+    ].filter(Boolean).join('\n'),
     link: d.shortLink || d.originalLink,
     promoCode: d.promoCode || '',
     imageUrl: (d.images && d.images.length) ? d.images[0] : null,
@@ -471,6 +473,7 @@ async function sendToScheduler() {
   }));
 
   console.log('Sending links:', comments.map(c => c.link));
+  console.log('Sending text[0]:', comments[0] && comments[0].text);
 
   try {
     console.log("Extract tab trying staging:", schedulerUrl);
