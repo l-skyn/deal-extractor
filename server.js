@@ -280,12 +280,18 @@ async function keepaLookup(asin, domain) {
         }
       }
 
-      // Avg price (90-day) and lowest recorded price from stats
-      // stats.avg is flat array indexed by csv type — try Amazon (0) then New (1)
-      // stats.min is array of [keepaTime, value] pairs or null — same indexing
+      // Current, avg (90-day) and lowest recorded price from stats
+      // stats.current and stats.avg are flat arrays indexed by csv type
+      // Try Amazon price (index 0) first, fallback to New price (index 1)
+      // stats.min is array of [keepaTime, value] pairs or null
+      let currentPrice = null;
       let avgPrice = null;
       let lowestPrice = null;
       if (p.stats) {
+        if (p.stats.current && Array.isArray(p.stats.current)) {
+          const curVal = p.stats.current[0] > 0 ? p.stats.current[0] : p.stats.current[1] > 0 ? p.stats.current[1] : null;
+          if (curVal) currentPrice = (curVal / 100).toFixed(2);
+        }
         if (p.stats.avg && Array.isArray(p.stats.avg)) {
           const avgVal = p.stats.avg[0] > 0 ? p.stats.avg[0] : p.stats.avg[1] > 0 ? p.stats.avg[1] : null;
           if (avgVal) avgPrice = (avgVal / 100).toFixed(2);
@@ -301,7 +307,7 @@ async function keepaLookup(asin, domain) {
       const catInfo = getCategoryInfo(p.rootCategory);
       const commissionRate = getCategoryRate(catInfo.name);
       console.log("rootCategory:", p.rootCategory, "→", catInfo.name, commissionRate + "% | rating:", rating, "| images:", images.length);
-      return { title: p.title, images, category: catInfo.name, commissionRate, rating, avgPrice, lowestPrice };
+      return { title: p.title, images, category: catInfo.name, commissionRate, rating, currentPrice, avgPrice, lowestPrice };
     }
     return { title: null, images: [], category: "Other", commissionRate: 4, rating: null };
   } catch(e) {
@@ -404,12 +410,13 @@ app.post("/api/enrich", async (req, res) => {
   else if (amazonUrl.includes("amazon.fr")) domain = 4;
 
   // Step 2: Keepa
-  const { title, images, category, commissionRate, rating, avgPrice, lowestPrice } = await keepaLookup(asin, domain);
+  const { title, images, category, commissionRate, rating, currentPrice, avgPrice, lowestPrice } = await keepaLookup(asin, domain);
   result.keepaTitle = title;
   result.images = images;
   result.category = category || "Other";
   result.commissionRate = commissionRate || 4;
   result.rating = rating || null;
+  result.currentPrice = currentPrice || null;
   result.avgPrice = avgPrice || null;
   result.lowestPrice = lowestPrice || null;
 
